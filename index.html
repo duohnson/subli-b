@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Subli’B: sublimación y productos personalizados. Envíos a toda Costa Rica.">
+  <meta name="theme-color" content="#090909">
+  <title>Subli’B — Sublimación y productos personalizados</title>
+  <link rel="icon" type="image/png" href="src/img/LOGO.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="src/estilos.css?v=20261017-precios-3">
+  <link rel="stylesheet" href="src/visual.css?v=20261022-marca-2">
+  <script src="src/principal.js?v=20261017-panel-2" defer></script>
+  <script type="module" src="src/publico.js?v=20261021-galeria-9"></script>
+</head>
+<body class="sitio-publico">
+  <p class="aviso">Productos personalizados. <span>Envíos a toda Costa Rica.</span></p>
+  <header>
+    <a class="marca" href="#inicio" aria-label="Subli’B, inicio"><img src="src/img/LOGO.png" alt="Subli’B Sublimación" width="1181" height="1181"></a>
+    <button class="menu-movil" type="button" aria-expanded="false" aria-controls="navegacion-publica">Menú <span aria-hidden="true">☰</span></button>
+    <nav id="navegacion-publica" aria-label="Navegación principal">
+      <a href="#inicio" aria-current="page">Inicio</a>
+      <a href="/catalogo">Catálogo</a>
+      <a href="#seguimiento">Mi pedido</a>
+      <a href="#contacto">Contacto <span aria-hidden="true">↗</span></a>
+    </nav>
+    <form id="busqueda-cabecera" action="/catalogo" class="busqueda-cabecera" role="search" aria-label="Buscar en el catálogo">
+      <label class="solo-lectores" for="buscar-cabecera">Buscar productos del catálogo</label>
+      <input id="buscar-cabecera" name="buscar" type="search" placeholder="Buscar productos…" autocomplete="off">
+      <button type="submit" aria-label="Ver productos encontrados"><span aria-hidden="true">⌕</span></button>
+    </form>
+  </header>
+  <main>
+    <section class="portada" id="inicio" aria-labelledby="titulo">
+      <div class="presentacion">
+        <p class="etiqueta">SUBLIMACIÓN Y PERSONALIZACIÓN</p>
+        <h1 id="titulo">Tú lo imaginas,<br><em>nosotros lo creamos.</em></h1>
+        <p>Camisetas, termos, tazas y artículos promocionales para empresas, eventos y pedidos particulares.</p>
+        <div class="acciones-portada"><a class="boton" href="/catalogo">Explorar catálogo <span aria-hidden="true">↗</span></a><a class="enlace-cotizar" href="https://wa.me/50662317181" target="_blank" rel="noopener noreferrer">Cotizar por WhatsApp ↗</a></div>
+        <p class="firma">Cotización según producto, cantidad y diseño.</p>
+      </div>
+      <figure class="destacadas" aria-label="Productos destacados que cambian automáticamente cada cuatro segundos.">
+        <img class="activa" src="src/img/destacadas/Camiseta de Luffy con estampado dinámico.png" alt="Camiseta personalizada de Luffy en negro y rojo" fetchpriority="high" width="1122" height="1402">
+        <img src="src/img/destacadas/Taza de Naruto con fondo naranja.png" alt="Taza personalizada de Naruto" aria-hidden="true" width="1327" height="1185">
+        <img src="src/img/destacadas/Vaso azul de Demon Slayer con pajilla.png" alt="Vaso azul personalizado de Demon Slayer con pajilla" aria-hidden="true" width="1122" height="1402">
+        <figcaption><span>PRODUCTOS DESTACADOS</span><span id="numero">01 / 03</span></figcaption>
+      </figure>
+      <p class="pie-portada"><span>PEDIDOS EMPRESARIALES Y PARTICULARES</span><span aria-hidden="true">↓</span></p>
+    </section>
+    <section class="proceso" aria-labelledby="titulo-proceso">
+      <div><p class="etiqueta">HECHO A TU MANERA</p><h2 id="titulo-proceso">Personalizar,<br><em>paso a paso.</em></h2></div>
+      <ol><li><span>01</span><h3>Elegí tu producto</h3><p>Una taza, una camiseta o un detalle para tu marca.</p></li><li><span>02</span><h3>Compartí tu idea</h3><p>Enviá tu diseño, una imagen o contanos qué imaginás.</p></li><li><span>03</span><h3>Hagámoslo realidad</h3><p>Coordinamos la cotización, el diseño y la entrega.</p></li></ol>
+    </section>
+    <section class="trabajos" id="seguimiento" aria-labelledby="titulo-seguimiento">
+      <p class="etiqueta">CONSULTA DE PEDIDOS</p>
+      <h2 id="titulo-seguimiento">Estado de <em>su pedido.</em></h2>
+      <form id="consultar" class="filtros"><label>Código privado de seguimiento<input name="codigo" required autocomplete="off" placeholder="Ingrese el código de su solicitud"></label><button class="boton">Consultar pedido</button></form>
+      <section id="detalle-seguimiento" aria-live="polite"></section>
+    </section>
+    <section class="trabajos" aria-labelledby="titulo-trabajos">
+      <div class="encabezado">
+        <div><p class="etiqueta">GALERÍA DE TRABAJOS</p><h2 id="titulo-trabajos">Trabajos <em>realizados.</em></h2></div>
+        <p>Muestras de productos y diseños elaborados para nuestros clientes.</p>
+      </div>
+      <p id="estado-galeria" role="status">Cargando trabajos…</p>
+      <div class="galeria" id="galeria-trabajos"></div>
+      <nav id="paginas-trabajos" class="paginacion" aria-label="Páginas de trabajos realizados"></nav>
+      <button id="pausar-trabajos" class="secundario" type="button" hidden>Pausar cambio automático</button>
+    </section>
+    <section class="contacto" id="contacto" aria-labelledby="titulo-contacto">
+      <p class="etiqueta">CONTACTO COMERCIAL</p>
+      <h2 id="titulo-contacto">Solicite una <em>cotización.</em></h2>
+      <p>Indique el producto, la cantidad y la fecha requerida. Le informaremos el precio y el plazo de entrega.</p>
+      <address>
+        <a href="https://wa.me/50662317181" target="_blank" rel="noopener noreferrer"><small>CONSULTAS POR WHATSAPP</small>+506 6231 7181 <span aria-hidden="true">↗</span></a>
+        <a href="https://www.instagram.com/subli__b/" target="_blank" rel="noopener noreferrer"><small>INSTAGRAM</small>@subli__b <span aria-hidden="true">↗</span></a>
+        <a href="https://www.tiktok.com/@sublimadora.cr" target="_blank" rel="noopener noreferrer"><small>TIKTOK</small>@sublimadora.cr <span aria-hidden="true">↗</span></a>
+        <a href="https://www.facebook.com/share/1C5aE21W78/" target="_blank" rel="noopener noreferrer"><small>FACEBOOK</small>SubliB <span aria-hidden="true">↗</span></a>
+      </address>
+    </section>
+    <section class="contacto" aria-labelledby="titulo-politicas"><h2 id="titulo-politicas">Condiciones de <em>compra.</em></h2><p id="politicas">Consulte las condiciones de pedidos, cambios y devoluciones por WhatsApp.</p><p id="instrucciones-pago">Coordine el adelanto mediante los canales de contacto. Administración confirmará el pago recibido.</p></section>
+  </main>
+  <footer><img class="marca" src="src/img/LOGO.png" alt="Subli’B Sublimación" width="1181" height="1181" loading="lazy"><p>Sublimación y artículos personalizados.</p><a href="https://duohnson.com/">Desarrollado por Daniel Uohnson</a><span>Costa Rica · <a href="/administracion.html">Administración</a></span></footer>
+</body>
+</html>

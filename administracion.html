@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Subli’B | Administración</title>
+  <link rel="icon" href="/src/img/LOGO.png">
+  <link rel="stylesheet" href="/src/estilos.css?v=20261022-lotes-1">
+  <link rel="stylesheet" href="/src/administracion.css?v=20261022-lotes-1">
+  <script type="module" src="/src/administracion.js?v=20261022-lotes-1"></script>
+</head>
+<body class="administracion">
+  <header><a class="marca" href="/" aria-label="Volver al sitio público"><img src="/src/img/LOGO.png" alt="Subli’B"></a><p class="identidad-panel"><strong>Subli’B</strong><span>Administración del negocio</span></p><a class="enlace-publico" href="/" target="_blank" rel="noopener">Ver sitio público ↗</a><button id="salir" class="secundario" hidden>Cerrar sesión</button></header>
+  <main>
+    <section id="acceso" class="acceso"><p class="etiqueta">ACCESO ADMINISTRATIVO</p><h1>Gestión del <em>negocio.</em></h1><p>Ingrese con sus credenciales para acceder al panel.</p><form id="ingresar" class="formulario"><label>Correo electrónico<input name="correo" type="email" required autocomplete="username"></label><label>Contraseña<input name="clave" type="password" required autocomplete="current-password"></label><button class="boton">Ingresar</button><p id="error-acceso" role="alert"></p></form></section>
+    <section id="panel" hidden>
+      <button id="abrir-menu" type="button" aria-expanded="false" aria-controls="menu">Secciones del panel <span aria-hidden="true">☰</span></button>
+      <nav id="menu" aria-label="Secciones de administración"></nav>
+      <section class="contenido"><p class="etiqueta" id="saludo"></p><h1 id="titulo-panel">Resumen del negocio</h1><p id="contexto-panel" class="suave"></p><p id="mensaje-panel" role="status" aria-live="polite"></p><section id="vista"></section></section>
+    </section>
+  </main>
+  <dialog id="editor" aria-labelledby="titulo-editor"><button type="button" class="cerrar" aria-label="Cerrar formulario">×</button><h2 id="titulo-editor"></h2><form class="formulario" id="formulario-editor"></form></dialog>
+</body>
+</html>

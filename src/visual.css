@@ -1,0 +1,150 @@
+
+.sitio-publico {
+  color-scheme: dark;
+  --fondo: #090909;
+  --texto: #f5f5f5;
+  --suave: #a9a9ad;
+  --acento: #ffd500;
+  --acento-suave: #ffd50012;
+  --amarillo: #ffd500;
+  --azul: #0755c9;
+  --superficie: #111113;
+  --superficie-alta: #171719;
+  --borde: #2b2b2e;
+  background: var(--fondo);
+  font-family: 'Barlow', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+.sitio-publico .aviso { background: var(--amarillo); color: #090909; font-weight: 600; letter-spacing: .04em; }
+.sitio-publico header { position: relative; z-index: 5; min-height: 100px; gap: 32px; }
+.sitio-publico header .marca { width: 84px; height: 84px; }
+.sitio-publico header nav { gap: 28px; margin-left: auto; font-weight: 500; }
+.sitio-publico header nav a:last-child { border: 0; }
+.sitio-publico header nav a:hover, .sitio-publico header nav a[aria-current="page"] { text-decoration: underline; text-underline-offset: 7px; }
+.busqueda-cabecera { position: relative; flex: 0 1 220px; min-width: 150px; }
+.sitio-publico .busqueda-cabecera input { padding-right: 44px; background: transparent; border: 0; border-bottom: 1px solid var(--borde); }
+.busqueda-cabecera button { position: absolute; inset: 0 0 0 auto; width: 44px; border: 0; background: transparent; color: var(--texto); font-size: 26px; }
+.solo-lectores { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+.menu-movil { display: none; }
+.sitio-publico h1, .sitio-publico h2 { font-family: inherit; font-weight: 600; letter-spacing: -.045em; line-height: 1.1; }
+.sitio-publico h1 { font-size: clamp(42px, 4.8vw, 68px); font-weight: 700; }
+.sitio-publico h2 { font-size: clamp(30px, 3.2vw, 44px); }
+.sitio-publico em { color: var(--amarillo); }
+.sitio-publico .etiqueta { color: var(--suave); font-size: 10px; font-weight: 500; letter-spacing: .16em; }
+.sitio-publico .portada { gap: 56px; padding-top: 64px; }
+.sitio-publico .portada::before { content: none; }
+.sitio-publico .presentacion .etiqueta { padding: 0; border-radius: 0; background: none; margin-bottom: 26px; }
+.sitio-publico .presentacion > p:not(.etiqueta):not(.firma) { max-width: 420px; font-size: 17px; line-height: 1.7; }
+.acciones-portada { display: flex; align-items: center; flex-wrap: wrap; gap: 24px; margin: 30px 0; }
+.sitio-publico .boton, .sitio-publico .secundario { display: inline-flex; align-items: center; justify-content: center; gap: 24px; min-height: 46px; padding: 12px 20px; border-radius: 2px; font-size: 14px; font-weight: 500; }
+.sitio-publico .boton { color: #090909; background: var(--acento); border-color: var(--acento); }
+.sitio-publico .boton:hover { background: #ffe24c; border-color: #ffe24c; }
+.sitio-publico .secundario { background: transparent; border-color: var(--borde); color: var(--texto); }
+.sitio-publico .secundario:hover { background: var(--superficie-alta); }
+.enlace-cotizar { font-size: 14px; text-decoration: underline; text-underline-offset: 5px; padding: 12px 0; }
+.sitio-publico .presentacion p.firma { border: 0; padding: 0; margin-top: 24px; font-size: 12px; }
+.sitio-publico .destacadas { width: 100%; height: 490px; margin: 0; background: transparent; border: 0; border-radius: 0; animation: none; }
+.sitio-publico .destacadas img { padding: 0 0 60px; transform: none; filter: none; }
+.sitio-publico .destacadas figcaption { inset: auto 0 0; padding: 20px 0; border: 0; border-top: 1px solid var(--borde); border-radius: 0; background: transparent; backdrop-filter: none; color: var(--suave); font-size: 9px; }
+.sitio-publico .pie-portada { margin: 0; padding: 26px 0; color: var(--suave); font-size: 10px; letter-spacing: .12em; }
+.proceso { display: grid; grid-template-columns: 1fr 2fr; gap: 56px; margin: 0 48px; padding: 56px 0; border-bottom: 1px solid var(--borde); }
+.proceso h2 { font-size: 28px; max-width: 260px; }
+.proceso ol { list-style: none; display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 28px; padding: 0; margin: 0; }
+.proceso li > span { display: block; margin-bottom: 20px; font-size: 12px; color: var(--suave); font-variant-numeric: tabular-nums; }
+.proceso h3 { margin: 0 0 10px; font-size: 16px; font-weight: 500; }
+.proceso li p { margin: 0; font-size: 14px; color: var(--suave); }
+.sitio-publico .trabajos { padding: 64px 48px; }
+.sitio-publico .encabezado > p { border: 0; padding: 0; max-width: 320px; }
+.sitio-publico .filtros { padding: 24px 0; border-block: 1px solid var(--borde); gap: 24px; margin: 28px 0; }
+.sitio-publico .filtros label { flex: 1; min-width: 180px; }
+.sitio-publico label { color: var(--suave); font-size: 13px; }
+.sitio-publico input, .sitio-publico select, .sitio-publico textarea { min-height: 46px; border: 1px solid #454549; border-radius: 2px; background: var(--superficie); color: var(--texto); }
+.sitio-publico input::placeholder, .sitio-publico textarea::placeholder { color: #96969d; }
+.sitio-publico #estado-catalogo, .sitio-publico #estado-galeria { font-size: 13px; color: var(--suave); }
+.sitio-publico .productos { gap: 44px 28px; }
+.sitio-publico #productos > .producto { display: flex; flex-direction: column; gap: 12px; min-width: 0; padding: 0; background: transparent; border: 0; border-radius: 0; }
+.sitio-publico #productos > .producto > * { min-width: 0; margin: 0; overflow-wrap: anywhere; }
+.foto-producto { display: block; width: 100%; padding: 0; border: 0; background: transparent; cursor: pointer; }
+.sitio-publico #productos .foto-producto img, .sitio-publico #productos .sin-foto { display: grid; width: 100%; height: auto; aspect-ratio: 1; object-fit: contain; margin: 0 0 8px; border: 0; border-radius: 0; background: var(--superficie-alta); }
+.sitio-publico #productos .sin-foto { font-size: 28px; font-weight: 500; }
+.sitio-publico #productos .etiqueta { border: 0; padding: 0; font-size: 10px; }
+.sitio-publico #productos h3 { font-size: 21px; line-height: 1.3; font-weight: 500; }
+.sitio-publico #productos .producto-descripcion { font-size: 14px; line-height: 1.65; }
+.sitio-publico #productos .producto-precio { margin-top: auto; padding-top: 4px; }
+.sitio-publico #productos strong { color: var(--texto); font-size: 19px; font-weight: 500; }
+.sitio-publico #productos .producto > p:not(.etiqueta):not(.producto-descripcion) { font-size: 12px; }
+.sitio-publico #productos .producto > .boton { justify-content: space-between; border: 0; border-top: 1px solid var(--borde); padding: 14px 0; border-radius: 0; color: var(--acento); background: transparent; text-align: left; }
+.sitio-publico #productos .producto > .boton::after { content: '↗'; font-size: 19px; }
+.sitio-publico #productos .producto > .boton:hover { text-decoration: underline; text-underline-offset: 4px; }
+.sitio-publico .tarjeta { padding: 24px 0; border: 0; border-bottom: 1px solid var(--borde); border-radius: 0; background: transparent; }
+.sitio-publico fieldset { min-width: 0; border: 1px solid var(--borde); }
+.sitio-publico .galeria, .sitio-publico #galeria-trabajos { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 24px; }
+.sitio-publico .galeria img { width: 100%; height: auto; aspect-ratio: 1; object-fit: contain; border: 0; border-radius: 0; }
+.sitio-publico .contacto { margin: 0 48px; padding: 56px 0; background: transparent; border: 0; border-top: 1px solid var(--borde); border-radius: 0; }
+.sitio-publico address { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 0 48px; margin-top: 28px; }
+.sitio-publico address a { display: block; padding: 22px 0; border: 0; border-bottom: 1px solid var(--borde); border-radius: 0; background: transparent; font-size: 23px; overflow-wrap: anywhere; }
+.sitio-publico address small { margin-bottom: 8px; font-size: 10px; letter-spacing: .1em; }
+.sitio-publico address span { float: right; margin-left: 12px; }
+.sitio-publico #titulo-politicas { font-size: 24px; }
+.sitio-publico #politicas, .sitio-publico #instrucciones-pago { max-width: 760px; font-size: 13px; }
+.sitio-publico footer { font-size: 11px; }
+.sitio-publico dialog { border: 1px solid var(--borde); border-radius: 2px; max-height: calc(100dvh - 32px); }
+.sitio-publico dialog h2 { font-size: 28px; }
+.sitio-publico :focus-visible { outline: 2px solid var(--acento); outline-offset: 4px; }
+#galeria-producto { width: min(900px,calc(100% - 24px)); }
+#imagen-producto { display: block; width: 100%; height: min(60vh,600px); object-fit: contain; }
+.controles-galeria { display: flex; align-items: center; justify-content: center; gap: 24px; margin-top: 20px; }
+.paginacion { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 32px 0; }
+.paginacion button { min-width: 44px; min-height: 44px; }
+.sitio-publico .paginacion [aria-current="page"] { background: var(--acento); border-color: var(--acento); color: #090909; }
+#pausar-trabajos { display: block; margin: 24px auto 0; }
+.sitio-publico .presentacion .etiqueta { display: flex; align-items: center; gap: 12px; color: var(--texto); }
+.sitio-publico .presentacion .etiqueta::before { content: ''; width: 5px; height: 16px; flex-shrink: 0; background: #ed1c24; box-shadow: 5px 0 #ffd500, 10px 0 #0755c9; margin-right: 10px; }
+.sitio-publico .proceso li { border-top: 2px solid var(--amarillo); padding-top: 18px; }
+.sitio-publico .proceso li:first-child { border-color: #ed1c24; }
+.sitio-publico .proceso li:last-child { border-color: #0755c9; }
+.sitio-publico .proceso li > span { color: #d1d1d4; }
+.sitio-publico .proceso h3 { font-weight: 600; }
+.sitio-publico .contacto address a:hover { color: var(--amarillo); }
+@media (min-width: 701px) {
+  @supports (grid-template-rows: subgrid) {
+    .sitio-publico #productos > .producto { display: grid; grid-row: span 7; grid-template-rows: subgrid; row-gap: 12px; }
+  }
+}
+@media (max-width: 1000px) {
+  .sitio-publico header { gap: 20px; }
+  .sitio-publico header nav { gap: 20px; }
+  .sitio-publico .portada { gap: 32px; }
+  .sitio-publico .destacadas { height: 410px; }
+  .proceso { grid-template-columns: 1fr; gap: 28px; }
+  .proceso h2 { max-width: none; }
+}
+@media (max-width: 700px) {
+  .sitio-publico header { flex-wrap: wrap; padding: 12px 20px; gap: 12px; }
+  .sitio-publico header .marca { width: 60px; height: 60px; }
+  .menu-movil { display: flex; align-items: center; gap: 12px; min-height: 44px; margin-left: auto; padding: 10px 0 10px 16px; background: transparent; border: 0; color: var(--texto); }
+  .sitio-publico header nav { display: none; width: 100%; margin: 0; padding: 12px 0; }
+  .sitio-publico header nav.abierta { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 24px; }
+  .busqueda-cabecera { flex: 0 0 100%; min-width: 0; }
+  .sitio-publico .portada { grid-template-columns: 1fr; gap: 28px; padding: 40px 20px 0; }
+  .sitio-publico h1 { font-size: clamp(38px,9vw,56px); }
+  .sitio-publico .presentacion > p:not(.etiqueta):not(.firma) { font-size: 16px; }
+  .acciones-portada { gap: 12px 20px; margin-block: 24px; }
+  .sitio-publico .destacadas { height: 380px; aspect-ratio: auto; }
+  .sitio-publico .pie-portada { font-size: 8px; padding: 18px 0; }
+  .proceso { margin: 0 20px; padding: 36px 0; }
+  .proceso ol { grid-template-columns: 1fr; gap: 24px; }
+  .proceso li { position: relative; padding-left: 40px; }
+  .proceso li > span { position: absolute; left: 0; top: 21px; margin: 0; }
+  .sitio-publico .trabajos { padding: 40px 20px; }
+  .sitio-publico .filtros { gap: 16px; }
+  .sitio-publico .filtros label { flex-basis: 100%; min-width: 0; }
+  .sitio-publico .filtros > .boton { width: 100%; }
+  .sitio-publico .productos { gap: 32px; }
+  .sitio-publico .galeria, .sitio-publico #galeria-trabajos { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+  .sitio-publico .contacto { margin: 0 20px; padding: 36px 0; }
+  .sitio-publico address { grid-template-columns: 1fr; gap: 0; }
+  .sitio-publico address a { width: 100%; font-size: 22px; }
+  .sitio-publico footer { padding: 24px 20px; flex-wrap: wrap; }
+  .sitio-publico dialog { padding: 24px 20px; }
+}

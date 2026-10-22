@@ -1,0 +1,11 @@
+BEGIN;
+ALTER TABLE clientes ALTER COLUMN correo DROP NOT NULL;
+ALTER TABLE clientes ALTER COLUMN correo DROP DEFAULT;
+ALTER TABLE proveedores ALTER COLUMN correo DROP NOT NULL;
+ALTER TABLE proveedores ALTER COLUMN correo DROP DEFAULT;
+ALTER TABLE empleados ALTER COLUMN correo DROP NOT NULL;
+ALTER TABLE empleados ALTER COLUMN correo DROP DEFAULT;
+UPDATE clientes SET correo = NULL WHERE btrim(correo) = '';
+UPDATE proveedores SET correo = NULL WHERE btrim(correo) = '';
+UPDATE empleados SET correo = NULL WHERE btrim(correo) = '';
+COMMIT;
