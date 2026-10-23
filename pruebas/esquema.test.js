@@ -16,6 +16,9 @@ test('El esquema nuevo y las migraciones dejan las mismas columnas', { skip: pro
       await consulta.unsafe(sinTransaccion(await readFile('documentos/base_de_datos/schema.sql', 'utf8')));
       const columnas = () => consulta`SELECT table_name, column_name, data_type, is_nullable, column_default FROM information_schema.columns WHERE table_schema = ${esquema} ORDER BY table_name, ordinal_position`;
       const iniciales = await columnas();
+      await consulta`ALTER TABLE recordatorios ALTER COLUMN fecha SET NOT NULL`;
+      await consulta`ALTER TABLE documentos DROP CONSTRAINT documentos_pedido_obligatorio`;
+      await consulta`ALTER TABLE documentos ALTER COLUMN pedido_id SET NOT NULL`;
       await consulta`ALTER TABLE productos DROP COLUMN imagenes`;
       await consulta`ALTER TABLE clientes ALTER COLUMN correo SET NOT NULL`;
       await consulta`ALTER TABLE proveedores ALTER COLUMN correo SET NOT NULL`;
@@ -43,6 +46,9 @@ test('El esquema nuevo y las migraciones dejan las mismas columnas', { skip: pro
       await consulta`INSERT INTO clientes (nombre, correo) VALUES ('Sin correo', ' ')`;
       await consulta.unsafe(sinTransaccion(await readFile('migraciones/007-correos-contacto-opcionales.sql', 'utf8')));
       await consulta.unsafe(sinTransaccion(await readFile('migraciones/007-correos-contacto-opcionales.sql', 'utf8')));
+      await consulta.unsafe(sinTransaccion(await readFile('migraciones/008-documentos-independientes.sql', 'utf8')));
+      await consulta.unsafe(sinTransaccion(await readFile('migraciones/008-documentos-independientes.sql', 'utf8')));
+      await consulta.unsafe(sinTransaccion(await readFile('migraciones/009-recordatorios-sin-fecha.sql', 'utf8')));
       assert.deepEqual(await columnas(), iniciales);
       for (const tabla of ['clientes', 'proveedores', 'empleados']) {
         const [contacto] = await consulta`SELECT correo FROM ${consulta(tabla)} WHERE nombre = 'Sin correo'`;

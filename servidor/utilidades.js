@@ -11,6 +11,11 @@ export function numero(valor, minimo = 0) {
   exigir(valor !== '' && valor !== null && valor !== undefined && Number.isFinite(resultado) && resultado >= minimo && resultado <= 999999999, 'Ingresá un número válido');
   return resultado;
 }
+
+export function numeroOpcional(valor, defecto = 0) {
+  return numero(valor === null || valor === undefined || String(valor).trim() === '' ? defecto : valor);
+}
+export const hoy = () => new Date().toLocaleDateString('en-CA', { timeZone: 'America/Costa_Rica' });
 export function entero(valor, minimo = 1) {
   const resultado = numero(valor, minimo);
   exigir(Number.isSafeInteger(resultado), 'Ingresá una cantidad entera');
@@ -42,27 +47,27 @@ export function comprobarClave(clave, guardada) {
   return timingSafeEqual(esperado, scryptSync(String(clave), sal, esperado.length));
 }
 export function calcularPrecio(datos) {
-  const producto = numero(datos.producto ?? 0);
-  const materiales = numero(datos.materiales ?? 0);
-  const electricidad = numero(datos.electricidad ?? 0);
-  const minutos = numero(datos.minutos ?? 0);
-  const maquinaHora = numero(datos.maquina_hora ?? 0);
-  const manoHora = numero(datos.mano_hora ?? 0);
-  const gastosAdicionales = numero(datos.gastos_adicionales ?? 0);
-  const comisionPorcentaje = numero(datos.comision_porcentaje ?? 0);
+  const producto = numeroOpcional(datos.producto ?? 0);
+  const materiales = numeroOpcional(datos.materiales ?? 0);
+  const electricidad = numeroOpcional(datos.electricidad ?? 0);
+  const minutos = numeroOpcional(datos.minutos ?? 0);
+  const maquinaHora = numeroOpcional(datos.maquina_hora ?? 0);
+  const manoHora = numeroOpcional(datos.mano_hora ?? 0);
+  const gastosAdicionales = numeroOpcional(datos.gastos_adicionales ?? 0);
+  const comisionPorcentaje = numeroOpcional(datos.comision_porcentaje ?? 0);
   const subtotal = producto + materiales + electricidad;
   const costoMaquina = minutos / 60 * maquinaHora;
   const costoManoObra = minutos / 60 * manoHora;
   const redondear = valor => +valor.toFixed(2);
   const costo = redondear(subtotal + costoMaquina + costoManoObra);
-  const margen = numero(datos.margen ?? 0);
-  const descuento = numero(datos.descuento ?? 0);
-  const ivaPorcentaje = numero(datos.iva_porcentaje ?? 13);
+  const margen = numeroOpcional(datos.margen ?? 0);
+  const descuento = numeroOpcional(datos.descuento ?? 0);
+  const ivaPorcentaje = numeroOpcional(datos.iva_porcentaje, 13);
   exigir(margen < 100 && descuento < 100 && comisionPorcentaje < 100 && ivaPorcentaje <= 100, 'Revisá los porcentajes');
   // El margen deseado se conserva sobre el precio efectivamente cobrado, luego del descuento.
   const precio = redondear(costo / (1 - margen / 100));
   const precioLista = redondear(precio / (1 - descuento / 100));
-  const cantidad = entero(datos.cantidad ?? 1);
+  const cantidad = entero(numeroOpcional(datos.cantidad, 1));
   const total = redondear(precio * cantidad);
   const comision = redondear(precio * comisionPorcentaje / 100);
   const margenBruto = redondear(precio - costo);
@@ -87,7 +92,7 @@ export function calcularPrecio(datos) {
     total,
     ganancia: redondear(ganancia * cantidad)
   };
-  // El impuesto se suma al cobro, pero se excluye de márgenes y ganancia.
+  // ahora se suma de nuevo
   if (datos.iva === true) {
     const iva = +(total * ivaPorcentaje / 100).toFixed(2);
     return { ...resultado, iva, totalConIva: +(total + iva).toFixed(2) };

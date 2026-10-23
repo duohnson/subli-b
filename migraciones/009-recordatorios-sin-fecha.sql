@@ -1,0 +1,3 @@
+BEGIN;
+ALTER TABLE recordatorios ALTER COLUMN fecha DROP NOT NULL;
+COMMIT;

@@ -34,7 +34,7 @@ export async function crearPedido(datos, privado = false, vendedor = null, conex
   });
 }
 
-export async function cambiarEstado(id, estado, codigo = null, conexion = sql) {
+export async function cambiarEstado(id, estado, codigo = null, conexion = sql, notificar = true) {
   return conexion.begin(async consulta => {
     const [pedido] = await consulta`SELECT * FROM pedidos WHERE id = ${id} FOR UPDATE`;
     exigir(pedido, 'Pedido no encontrado', 404);
@@ -71,7 +71,7 @@ export async function cambiarEstado(id, estado, codigo = null, conexion = sql) {
       await consulta`DELETE FROM reservas WHERE pedido_id = ${id} AND NOT consumido`;
     }
     const [actualizado] = await consulta`UPDATE pedidos SET estado = ${estado} WHERE id = ${id} RETURNING *`;
-    if (estado === 'listo') {
+    if (estado === 'listo' && notificar) {
       const [cliente] = await consulta`SELECT * FROM clientes WHERE id = ${pedido.cliente_id}`;
       const mensaje = mensajeListo(cliente.nombre, id);
       if (cliente.correo) await consulta`INSERT INTO notificaciones (clave, destinatario, asunto, mensaje) VALUES (${`listo-${id}`}, ${cliente.correo}, 'Tu pedido está listo · Subli’B', ${mensaje}) ON CONFLICT DO NOTHING`;
@@ -121,4 +121,21 @@ export async function aprobarDiseno(referencia, desdeAdmin = false, consulta = s
   const [pedido] = await consulta`UPDATE pedidos SET diseno_aprobado = true WHERE ${filtro} AND vista_previa AND estado IN ('cotizacion', 'pendiente') AND (${desdeAdmin} OR EXISTS (SELECT 1 FROM archivos WHERE pedido_id = pedidos.id AND es_previa)) RETURNING id`;
   exigir(pedido, 'El pedido no permite aprobar el diseño o falta la vista previa');
   return { mensaje: 'Diseño aprobado para producción' };
+}
+
+// Una acción del panel puede completar las etapas intermedias en la misma transacción.
+export async function avanzarPedido(id, destino, conexion = sql) {
+  exigir(['listo','entregado'].includes(destino), 'Elegí listo o entregado');
+  return conexion.begin(async consulta => {
+    const [pedido] = await consulta`SELECT * FROM pedidos WHERE id = ${id} FOR UPDATE`;
+    exigir(pedido, 'Pedido no encontrado', 404);
+    exigir(['pendiente','produccion','listo'].includes(pedido.estado), 'Aprobá el pedido antes de completar el trabajo');
+    const etapas = ['pendiente','produccion','listo','entregado'];
+    exigir(etapas.indexOf(destino) > etapas.indexOf(pedido.estado), 'El pedido ya alcanzó ese estado');
+    let actualizado = pedido;
+    for (const estado of etapas.slice(etapas.indexOf(pedido.estado) + 1, etapas.indexOf(destino) + 1)) {
+      actualizado = await cambiarEstado(id, estado, null, { begin: fn => fn(consulta) }, estado === destino);
+    }
+    return actualizado;
+  });
 }

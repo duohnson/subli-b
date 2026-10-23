@@ -95,20 +95,22 @@ function terminar(pdf, nota) {
 export function generarDocumento(salida, fila) {
   const pdf = iniciar(salida, titulos[fila.tipo] || 'Documento', `N.º ${String(fila.id).padStart(6, '0')}`, fila.creado);
   const detalle = fila.detalle;
-  let y = escribir(pdf, `CLIENTE  /  PEDIDO #${fila.pedido_id}`, 44, pdf.y, ancho, { tamano: 8, negrita: true, color: '#596579' });
+  let y = escribir(pdf, fila.pedido_id ? `CLIENTE  /  PEDIDO #${fila.pedido_id}` : 'CLIENTE', 44, pdf.y, ancho, { tamano: 8, negrita: true, color: '#596579' });
   y = escribir(pdf, detalle.cliente, 44, y + 8, ancho, { tamano: 12, negrita: true });
   y = escribir(pdf, [detalle.correo, detalle.direccion].filter(Boolean).join('\n'), 44, y + 5, ancho, { tamano: 9, color: '#596579' });
   pdf.y = y + 24;
   tabla(pdf, ['PRODUCTO / DESCRIPCIÓN', 'CANT.', 'PRECIO UNIT.', 'IMPORTE'], [245, 45, 107, 110], detalle.partidas.map(p => [[p.nombre, [p.color, p.talla].filter(Boolean).join(' / '), p.nombre_personalizado ? `Personalización: ${p.nombre_personalizado}` : ''].filter(Boolean).join('\n'), p.cantidad, moneda(p.precio), moneda(p.cantidad * p.precio)]));
   const totalPedido = detalle.partidas.reduce((total, p) => total + Number(p.cantidad) * Number(p.precio), 0);
-  if (['recibo', 'comprobante'].includes(fila.tipo)) {
+  if (fila.tipo === 'recibo' && !fila.pedido_id) {
+    totales(pdf, [['Importe recibido', fila.total]]);
+  } else if (['recibo', 'comprobante'].includes(fila.tipo)) {
     totales(pdf, [['Total del pedido', totalPedido], ['Saldo del pedido', totalPedido - Number(detalle.pagado)], ['Pagos registrados', fila.total]]);
   } else if (fila.tipo === 'nota_credito') {
     totales(pdf, [['Importe de la nota', fila.total]]);
   } else {
     totales(pdf, [['Total del documento', fila.total], ['Pagos registrados', detalle.pagado], ['Saldo pendiente', Number(fila.total) - Number(detalle.pagado)]]);
   }
-  const nota = fila.tipo === 'nota_credito' ? 'Esta nota no registra por sí sola una devolución de dinero ni una reposición de inventario.' : ['recibo', 'comprobante'].includes(fila.tipo) ? 'Este documento refleja los pagos acumulados registrados al momento de su emisión.' : 'Importes expresados en colones costarricenses (CRC).';
+  const nota = fila.tipo === 'recibo' && !fila.pedido_id ? 'Recibo independiente. No registra un movimiento de caja; registrá el ingreso en Finanzas si corresponde.' : fila.tipo === 'nota_credito' ? 'Esta nota no registra por sí sola una devolución de dinero ni una reposición de inventario.' : ['recibo', 'comprobante'].includes(fila.tipo) ? 'Este documento refleja los pagos acumulados registrados al momento de su emisión.' : 'Importes expresados en colones costarricenses (CRC).';
   terminar(pdf, `${nota}\nDocumento interno. No es un comprobante electrónico tributario.`);
 }
 

@@ -1,3 +1,5 @@
+import { registrarMovimiento, registrarCompras } from './servidor/operaciones.js';
+import { crearDocumento } from './servidor/documentos.js';
 import { guardarEmpleado, crearUsuarioEmpleado, pagarSalario, ventasPorUsuario } from './servidor/empleados.js';
 import express from 'express';
 import { obtenerEstadisticas } from './servidor/estadisticas.js';
@@ -9,8 +11,8 @@ import { fileURLToPath } from 'node:url';
 import { readFile, unlink } from 'node:fs/promises';
 import path from 'node:path';
 import { sql, verificarBase } from './servidor/base.js';
-import { exigir, texto, numero, entero, correo, correoOpcional, fecha, guardarClave, comprobarClave, calcularPrecio } from './servidor/utilidades.js';
-import { crearPedido, cambiarEstado, listarPedidos, editarPedidoCliente, aprobarDiseno } from './servidor/pedidos.js';
+import { exigir, texto, numero, numeroOpcional, entero, correo, correoOpcional, fecha, guardarClave, comprobarClave, calcularPrecio } from './servidor/utilidades.js';
+import { crearPedido, cambiarEstado, avanzarPedido, listarPedidos, editarPedidoCliente, aprobarDiseno } from './servidor/pedidos.js';
 import { procesarNotificaciones } from './servidor/notificaciones.js';
 
 const carpeta = path.dirname(fileURLToPath(import.meta.url));
@@ -74,7 +76,7 @@ aplicacion.post('/api/ingresar', async (peticion, respuesta) => {
   exigir(usuario && comprobarClave(peticion.body.clave, usuario.clave), 'Correo o contraseña incorrectos', 401);
   const token = randomBytes(32).toString('hex');
   await sql`INSERT INTO sesiones (token, usuario_id, vence) VALUES (${resumen(token)}, ${usuario.id}, now() + interval '8 hours')`;
-  respuesta.cookie('sesion', token, { ...opcionesCookie, maxAge: 8 * 60 * 60 * 1000 }).json({ nombre: usuario.nombre, rol: usuario.rol });
+  respuesta.cookie('sesion', token, { ...opcionesCookie, maxAge: 8 * 60 * 60 * 1000 }).json({ id: usuario.id, nombre: usuario.nombre, rol: usuario.rol });
 });
 aplicacion.post('/api/salir', autenticar, async (peticion, respuesta) => {
   await sql`DELETE FROM sesiones WHERE token = ${peticion.token}`;
@@ -163,9 +165,17 @@ aplicacion.post('/api/privado/pedidos', async (peticion, respuesta) => respuesta
 aplicacion.patch('/api/privado/pedidos/:id', async (peticion, respuesta) => {
   const id = entero(peticion.params.id);
   if (peticion.body.estado) return respuesta.json(await cambiarEstado(id, peticion.body.estado));
-  const [pedido] = await sql`UPDATE pedidos SET fecha_prometida = ${fecha(peticion.body.fecha_prometida)}, fecha_pago = ${fecha(peticion.body.fecha_pago)}, responsable_id = ${peticion.body.responsable_id ? entero(peticion.body.responsable_id) : null}, instrucciones = ${texto(peticion.body.instrucciones, 3000)} WHERE id = ${id} RETURNING *`;
+  const datos = {};
+  for (const campo of ['fecha_prometida','fecha_pago']) if (campo in peticion.body) datos[campo] = fecha(peticion.body[campo]);
+  if ('responsable_id' in peticion.body) datos.responsable_id = peticion.body.responsable_id ? entero(peticion.body.responsable_id) : null;
+  if ('instrucciones' in peticion.body) datos.instrucciones = texto(peticion.body.instrucciones, 3000);
+  exigir(Object.keys(datos).length, 'No hay cambios para guardar');
+  const [pedido] = await sql`UPDATE pedidos SET ${sql(datos)} WHERE id = ${id} RETURNING *`;
   exigir(pedido, 'Pedido no encontrado', 404);
   respuesta.json(pedido);
+});
+aplicacion.post('/api/privado/pedidos/:id/avanzar', async (peticion, respuesta) => {
+  respuesta.json(await avanzarPedido(entero(peticion.params.id), texto(peticion.body.estado)));
 });
 aplicacion.post('/api/privado/pedidos/:id/aprobar-diseno', (peticion, respuesta, siguiente) => { administrador(peticion, respuesta, siguiente); }, async (peticion, respuesta) => {
   respuesta.json(await aprobarDiseno(entero(peticion.params.id), true));
@@ -174,7 +184,7 @@ aplicacion.post('/api/privado/pedidos/:id/repetir', async (peticion, respuesta) 
   const [anterior] = await sql`SELECT * FROM pedidos WHERE id = ${entero(peticion.params.id)}`;
   exigir(anterior, 'Pedido no encontrado', 404);
   const partidas = await sql`SELECT * FROM partidas WHERE pedido_id = ${anterior.id}`;
-  const pedido = await crearPedido({ ...anterior, partidas }, true, peticion.usuario.id);
+  const pedido = await crearPedido({ ...anterior, fecha_prometida: null, partidas }, true, peticion.usuario.id);
   await sql`INSERT INTO archivos (pedido_id, nombre, ruta, tipo, es_previa) SELECT ${pedido.id}, nombre, ruta, tipo, es_previa FROM archivos WHERE pedido_id = ${anterior.id}`;
   respuesta.status(201).json(pedido);
 });
@@ -205,12 +215,12 @@ aplicacion.use('/api/privado', (peticion, respuesta, siguiente) => {
 
 aplicacion.get('/api/privado/empleados', async (peticion, respuesta) => respuesta.json(await sql`SELECT e.*, u.correo AS acceso, u.activo AS acceso_activo FROM empleados e LEFT JOIN usuarios u ON u.id = e.usuario_id ORDER BY e.nombre`));
 aplicacion.post('/api/privado/empleados', async (peticion, respuesta) => {
-  exigir(Number(peticion.body.usuario_id) !== peticion.usuario.id || peticion.body.activo === true, 'No podés desactivar tu propio acceso');
+  exigir(Number(peticion.body.usuario_id) !== peticion.usuario.id || peticion.body.activo !== false, 'No podés desactivar tu propio acceso');
   respuesta.status(201).json(await guardarEmpleado(peticion.body));
 });
 aplicacion.patch('/api/privado/empleados/:id', async (peticion, respuesta) => {
   const [empleado] = await sql`SELECT usuario_id FROM empleados WHERE id = ${entero(peticion.params.id)}`;
-  exigir(empleado?.usuario_id !== peticion.usuario.id || peticion.body.activo === true, 'No podés desactivar tu propio acceso');
+  exigir(empleado?.usuario_id !== peticion.usuario.id || peticion.body.activo !== false, 'No podés desactivar tu propio acceso');
   respuesta.json(await guardarEmpleado(peticion.body, entero(peticion.params.id)));
 });
 aplicacion.post('/api/privado/empleados/:id/usuario', async (peticion, respuesta) => respuesta.status(201).json(await crearUsuarioEmpleado(entero(peticion.params.id), peticion.body)));
@@ -244,24 +254,27 @@ aplicacion.post('/api/privado/medios', subir.single('imagen'), async (peticion, 
 });
 // ignorar campos ajenos a esta lista aunque alguien los mande a mano
 const recursos = {
-  contenidos: { seccion: texto, nombre: texto, imagen: valor => { const ruta = texto(valor); exigir(/^\/media\/\d+$/.test(ruta) || ruta.startsWith('/src/img/'), 'Seleccioná una imagen de la biblioteca'); return ruta; }, orden: valor => entero(valor, 0), activo: valor => valor === true },
-  productos: { imagenes: valor => { exigir(Array.isArray(valor), 'Seleccioná las imágenes del producto'); const imagenes = [...new Set(valor.map(imagen => { exigir(typeof imagen === 'string' && (/^\/media\/\d+$/.test(imagen) || imagen.startsWith('/src/img/') || imagen.startsWith('src/img/')), 'Seleccioná imágenes de la biblioteca'); return imagen; }))]; return sql.json(imagenes); }, nombre: texto, categoria: texto, descripcion: texto, imagen: valor => { const ruta = texto(valor); exigir(!ruta || ruta.startsWith('/src/img/') || ruta.startsWith('src/img/') || /^\/media\/\d+$/.test(ruta), 'Seleccioná una imagen de la biblioteca'); return ruta; }, precio: numero, costo: numero, promocion: texto, personalizable: valor => valor === true, activo: valor => valor === true },
-  clientes: { nombre: texto, correo: correoOpcional, telefono: texto, direccion: texto, notas: texto, limite_credito: numero },
-  proveedores: { nombre: texto, correo: correoOpcional, telefono: texto, productos: texto, plazo_dias: valor => entero(valor, 0), notas: texto },
-  inventario: { producto_id: valor => valor ? entero(valor) : null, nombre: texto, color: texto, talla: texto, minimo: valor => entero(valor, 0), costo: numero },
+  contenidos: { seccion: texto, nombre: texto, imagen: valor => { const ruta = texto(valor); exigir(/^\/media\/\d+$/.test(ruta) || ruta.startsWith('/src/img/'), 'Seleccioná una imagen de la biblioteca'); return ruta; }, orden: valor => entero(numeroOpcional(valor), 0), activo: valor => valor === true },
+  productos: { imagenes: valor => { exigir(Array.isArray(valor), 'Seleccioná las imágenes del producto'); const imagenes = [...new Set(valor.map(imagen => { exigir(typeof imagen === 'string' && (/^\/media\/\d+$/.test(imagen) || imagen.startsWith('/src/img/') || imagen.startsWith('src/img/')), 'Seleccioná imágenes de la biblioteca'); return imagen; }))]; return sql.json(imagenes); }, nombre: texto, categoria: texto, descripcion: texto, imagen: valor => { const ruta = texto(valor); exigir(!ruta || ruta.startsWith('/src/img/') || ruta.startsWith('src/img/') || /^\/media\/\d+$/.test(ruta), 'Seleccioná una imagen de la biblioteca'); return ruta; }, precio: numero, costo: numeroOpcional, promocion: texto, personalizable: valor => valor === true, activo: valor => valor === true },
+  clientes: { nombre: texto, correo: correoOpcional, telefono: texto, direccion: texto, notas: texto, limite_credito: numeroOpcional },
+  proveedores: { nombre: texto, correo: correoOpcional, telefono: texto, productos: texto, plazo_dias: valor => entero(numeroOpcional(valor), 0), notas: texto },
+  inventario: { producto_id: valor => valor ? entero(valor) : null, nombre: texto, color: texto, talla: texto, minimo: valor => entero(numeroOpcional(valor), 0), costo: numeroOpcional },
   recetas: { variante_id: entero, material_id: entero, cantidad: entero },
-  recordatorios: { titulo: texto, fecha: valor => { exigir(valor, 'La fecha es obligatoria'); return fecha(valor); }, tipo: texto, completado: valor => valor === true }
+  recordatorios: { titulo: texto, fecha, tipo: texto, completado: valor => valor === true }
 };
 for (const [tabla, campos] of Object.entries(recursos)) {
   aplicacion.get(`/api/privado/${tabla}`, async (peticion, respuesta) => {
     if (tabla === 'proveedores') {
       return respuesta.json(await sql`SELECT p.*, COALESCE(jsonb_agg(pi.inventario_id ORDER BY pi.inventario_id) FILTER (WHERE pi.inventario_id IS NOT NULL), '[]'::jsonb) AS inventario_ids, COALESCE(string_agg(DISTINCT concat_ws(' ', i.nombre, NULLIF(i.color, ''), NULLIF(i.talla, '')), ', ' ORDER BY concat_ws(' ', i.nombre, NULLIF(i.color, ''), NULLIF(i.talla, ''))) FILTER (WHERE i.id IS NOT NULL), '') AS productos_vinculados FROM proveedores p LEFT JOIN proveedor_inventario pi ON pi.proveedor_id = p.id LEFT JOIN inventario i ON i.id = pi.inventario_id GROUP BY p.id ORDER BY p.id DESC`);
     }
+    if (tabla === 'recetas') return respuesta.json(await sql`SELECT r.*, v.nombre AS variante, m.nombre AS material FROM recetas r JOIN inventario v ON v.id = r.variante_id JOIN inventario m ON m.id = r.material_id ORDER BY r.id DESC`);
     respuesta.json(await sql`SELECT * FROM ${sql(tabla)} ORDER BY id DESC`);
   });
   async function guardar(peticion, respuesta) {
     const datos = {};
     for (const [campo, validar] of Object.entries(campos)) if (peticion.body[campo] !== undefined) datos[campo] = validar(peticion.body[campo]);
+    if (tabla === 'inventario' && !peticion.params.id) datos.existencias = entero(numeroOpcional(peticion.body.existencias), 0);
+    if (tabla === 'productos' && !peticion.params.id) { datos.categoria ||= 'General'; datos.precio ??= 0; }
     exigir(Object.keys(datos).length, 'Completá los datos');
     if ('nombre' in datos) exigir(datos.nombre, 'El nombre es obligatorio');
     if ('titulo' in datos) exigir(datos.titulo, 'El título es obligatorio');
@@ -282,6 +295,14 @@ for (const [tabla, campos] of Object.entries(recursos)) {
         return proveedor;
       });
       return respuesta.json(salida);
+    }
+    if (tabla === 'productos' && !peticion.params.id && peticion.body.crear_variante === true) {
+      const producto = await sql.begin(async consulta => {
+        const [producto] = await consulta`INSERT INTO productos ${consulta(datos)} RETURNING *`;
+        await consulta`INSERT INTO inventario (producto_id, nombre, existencias, costo) VALUES (${producto.id}, ${producto.nombre}, ${entero(numeroOpcional(peticion.body.existencias), 0)}, ${producto.costo})`;
+        return producto;
+      });
+      return respuesta.json(producto);
     }
     const filas = peticion.params.id ? await sql`UPDATE ${sql(tabla)} SET ${sql(datos)} WHERE id = ${entero(peticion.params.id)} RETURNING *` : await sql`INSERT INTO ${sql(tabla)} ${sql(datos)} RETURNING *`;
     exigir(filas[0], 'Registro no encontrado', 404);
@@ -304,11 +325,7 @@ aplicacion.post('/api/privado/inventario/:id/ajustar', async (peticion, respuest
 });
 aplicacion.get('/api/privado/compras', async (peticion, respuesta) => respuesta.json(await sql`SELECT c.*, p.nombre AS proveedor, i.nombre AS material, c.cantidad * c.costo_unitario AS total, COALESCE(sum(m.monto),0) AS pagado FROM compras c JOIN proveedores p ON p.id = c.proveedor_id JOIN inventario i ON i.id = c.inventario_id LEFT JOIN movimientos m ON m.compra_id = c.id GROUP BY c.id, p.id, i.id ORDER BY c.fecha DESC`));
 aplicacion.post('/api/privado/compras', async (peticion, respuesta) => {
-  const d = peticion.body;
-  const [vinculo] = await sql`SELECT 1 FROM proveedor_inventario WHERE proveedor_id = ${entero(d.proveedor_id)} AND inventario_id = ${entero(d.inventario_id)}`;
-  exigir(vinculo, 'Ese material no está vinculado al proveedor seleccionado');
-  const [compra] = await sql`INSERT INTO compras (proveedor_id, inventario_id, cantidad, costo_unitario, factura, vencimiento, notas) VALUES (${entero(d.proveedor_id)}, ${entero(d.inventario_id)}, ${entero(d.cantidad)}, ${numero(d.costo_unitario)}, ${texto(d.factura)}, ${fecha(d.vencimiento)}, ${texto(d.notas)}) RETURNING *`;
-  respuesta.status(201).json(compra);
+  respuesta.status(201).json(await registrarCompras(peticion.body));
 });
 aplicacion.post('/api/privado/compras/:id/recibir', async (peticion, respuesta) => {
   const compra = await sql.begin(async consulta => {
@@ -321,27 +338,7 @@ aplicacion.post('/api/privado/compras/:id/recibir', async (peticion, respuesta) 
 });
 aplicacion.get('/api/privado/movimientos', async (peticion, respuesta) => respuesta.json(await sql`SELECT * FROM movimientos ORDER BY fecha DESC, id DESC`));
 aplicacion.post('/api/privado/movimientos', async (peticion, respuesta) => {
-  const d = peticion.body;
-  const monto = numero(d.monto, 0.01);
-  const resultado = await sql.begin(async consulta => {
-    // bloquear el pedido mientras se revisan pagos para evitar q dos cobros excedan el saldo
-    if (d.pedido_id) {
-      const [pedido] = await consulta`SELECT * FROM pedidos WHERE id = ${entero(d.pedido_id)} FOR UPDATE`;
-      exigir(pedido && !['cotizacion','cancelado'].includes(pedido.estado), 'El pedido debe estar aprobado');
-      const [pagos] = await consulta`SELECT COALESCE(sum(monto), 0) AS total FROM movimientos WHERE pedido_id = ${pedido.id}`;
-      exigir(monto <= Number(pedido.total) - Number(pagos.total), 'El pago supera el saldo pendiente');
-    }
-    if (d.compra_id) {
-      const [compra] = await consulta`SELECT * FROM compras WHERE id = ${entero(d.compra_id)} FOR UPDATE`;
-      exigir(compra, 'Compra no encontrada');
-      const [pagos] = await consulta`SELECT COALESCE(sum(monto), 0) AS total FROM movimientos WHERE compra_id = ${compra.id}`;
-      exigir(monto <= Number(compra.cantidad) * Number(compra.costo_unitario) - Number(pagos.total), 'El pago supera la deuda con el proveedor');
-    }
-    exigir(texto(d.concepto), 'Escribí el concepto');
-    const [movimiento] = await consulta`INSERT INTO movimientos (tipo, concepto, monto, comision, impuesto, medio, cuenta, pedido_id, compra_id, fecha) VALUES (${texto(d.tipo)}, ${texto(d.concepto)}, ${monto}, ${numero(d.comision ?? 0)}, ${numero(d.impuesto ?? 0)}, ${texto(d.medio)}, ${texto(d.cuenta)}, ${d.pedido_id ? entero(d.pedido_id) : null}, ${d.compra_id ? entero(d.compra_id) : null}, ${fecha(d.fecha) || new Date().toLocaleDateString('en-CA', { timeZone: 'America/Costa_Rica' })}) RETURNING *`;
-    return movimiento;
-  });
-  respuesta.status(201).json(resultado);
+  respuesta.status(201).json(await registrarMovimiento(peticion.body));
 });
 aplicacion.post('/api/privado/calcular', (peticion, respuesta) => respuesta.json(calcularPrecio(peticion.body)));
 aplicacion.get('/api/privado/notificaciones', async (peticion, respuesta) => respuesta.json(await sql`SELECT * FROM notificaciones ORDER BY creado DESC LIMIT 200`));
@@ -372,6 +369,7 @@ aplicacion.get('/api/privado/estadisticas', async (peticion, respuesta) => {
 aplicacion.get('/api/privado/tablero', async (peticion, respuesta) => {
   const desde = fecha(peticion.query.desde) || new Date().toLocaleDateString('en-CA', { timeZone: 'America/Costa_Rica' }).slice(0, 7) + '-01';
   const hasta = fecha(peticion.query.hasta) || new Date().toLocaleDateString('en-CA', { timeZone: 'America/Costa_Rica' });
+  exigir(desde <= hasta, 'Elegí un rango de fechas válido');
   const [finanzas] = await sql`SELECT COALESCE(sum(monto) FILTER (WHERE tipo = 'ingreso'), 0) AS ingresos, COALESCE(sum(monto) FILTER (WHERE tipo = 'gasto'), 0) AS gastos, COALESCE(sum(comision), 0) AS comisiones, COALESCE(sum(impuesto), 0) AS impuestos FROM movimientos WHERE fecha BETWEEN ${desde} AND ${hasta}`;
   const pedidos = await listarPedidos();
   const estados = await sql`SELECT estado, count(*)::integer AS cantidad FROM pedidos GROUP BY estado`;
@@ -384,30 +382,12 @@ aplicacion.get('/api/privado/tablero', async (peticion, respuesta) => {
   const vendedores = await ventasPorUsuario(desde, hasta);
   respuesta.json({ finanzas, pedidos, estados, recordatorios, inventario, meses, categorias, productos, frecuentes, vendedores, desde, hasta });
 });
-aplicacion.get('/api/privado/documentos', async (peticion, respuesta) => respuesta.json(await sql`SELECT id, pedido_id, tipo, total, creado FROM documentos ORDER BY id DESC`));
+aplicacion.get('/api/privado/documentos', async (peticion, respuesta) => {
+  const filtro = peticion.query.pedido_id ? sql`WHERE pedido_id = ${entero(peticion.query.pedido_id)}` : sql``;
+  respuesta.json(await sql`SELECT id, pedido_id, tipo, total, creado FROM documentos ${filtro} ORDER BY id DESC`);
+});
 aplicacion.post('/api/privado/documentos', async (peticion, respuesta) => {
-  const id = entero(peticion.body.pedido_id);
-  const tipo = texto(peticion.body.tipo);
-  const documento = await sql.begin(async consulta => {
-    const [pedido] = await consulta`SELECT p.*, c.nombre, c.correo, c.direccion FROM pedidos p JOIN clientes c ON c.id = p.cliente_id WHERE p.id = ${id} FOR UPDATE OF p`;
-    exigir(pedido, 'Pedido no encontrado', 404);
-    exigir(tipo !== 'factura' || !['cotizacion','cancelado'].includes(pedido.estado), 'Aprobá la cotización antes de facturar');
-    if (tipo === 'factura') {
-      const existentes = await consulta`SELECT id FROM documentos WHERE pedido_id = ${id} AND tipo = 'factura'`;
-      exigir(!existentes.length, 'El pedido ya tiene una factura');
-    }
-    const partidas = await consulta`SELECT pa.cantidad, pa.precio, pa.nombre_personalizado, i.nombre, i.color, i.talla FROM partidas pa JOIN inventario i ON i.id = pa.variante_id WHERE pa.pedido_id = ${id}`;
-    const [pagos] = await consulta`SELECT COALESCE(sum(monto), 0) AS total FROM movimientos WHERE pedido_id = ${id}`;
-    const total = ['recibo','comprobante'].includes(tipo) ? pagos.total : pedido.total;
-    exigir(!['recibo','comprobante'].includes(tipo) || Number(total) > 0, 'No hay pagos registrados');
-    if (tipo === 'nota_credito') {
-      const [factura] = await consulta`SELECT id FROM documentos WHERE pedido_id = ${id} AND tipo = 'factura'`;
-      exigir(factura, 'Primero debe existir una factura');
-    }
-    // guardar una copia de los datos para q el documento no cambie al editar el cliente
-    const [documento] = await consulta`INSERT INTO documentos (pedido_id, tipo, total, detalle) VALUES (${id}, ${tipo}, ${total}, ${consulta.json({ cliente: pedido.nombre, correo: pedido.correo, direccion: pedido.direccion, partidas, pagado: pagos.total })}) RETURNING *`;
-    return documento;
-  });
+  const documento = await crearDocumento(peticion.body);
   respuesta.status(201).json(documento);
 });
 aplicacion.get('/api/privado/documentos/:id/pdf', async (peticion, respuesta) => {

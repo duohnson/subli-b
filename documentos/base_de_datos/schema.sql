@@ -136,7 +136,8 @@ CREATE TABLE movimientos (
 );
 CREATE TABLE documentos (
   id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  pedido_id integer NOT NULL REFERENCES pedidos(id),
+  pedido_id integer REFERENCES pedidos(id),
+  CONSTRAINT documentos_pedido_obligatorio CHECK (tipo NOT IN ('factura','comprobante') OR pedido_id IS NOT NULL),
   tipo text NOT NULL CHECK (tipo IN ('cotizacion','proforma','recibo','comprobante','nota_credito','factura')),
   total numeric(12,2) NOT NULL CHECK (total >= 0),
   detalle jsonb NOT NULL,
@@ -145,7 +146,7 @@ CREATE TABLE documentos (
 CREATE TABLE recordatorios (
   id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   titulo text NOT NULL,
-  fecha date NOT NULL,
+  fecha date,
   tipo text NOT NULL DEFAULT 'general' CHECK (tipo IN ('general','entrega','cobro','inventario','mantenimiento')),
   completado boolean NOT NULL DEFAULT false
 );

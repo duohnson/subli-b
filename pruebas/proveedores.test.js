@@ -47,8 +47,16 @@ test('Proveedores: correo opcional y asignación masiva atómica', { skip: proce
     assert.equal((await sql`SELECT * FROM proveedor_inventario WHERE proveedor_id = ${proveedor.id}`).length, 40);
     resultado = await api(`proveedores/${proveedor.id}`, {nombre:'Proveedor de prueba', inventario_ids:[]}, 'PATCH');
     assert.deepEqual(resultado.body.inventario_ids, []);
+    resultado = await api('compras', {proveedor_id:proveedor.id, inventario_id:ids[0], cantidad:2, costo_unitario:100});
+    assert.equal(resultado.status, 201, JSON.stringify(resultado.body));
+    const vinculos = await sql`SELECT inventario_id FROM proveedor_inventario WHERE proveedor_id = ${proveedor.id}`;
+    assert.deepEqual([...vinculos], [{inventario_id:ids[0]}]);
+    resultado = await api('compras', {proveedor_id:proveedor.id, inventario_id:ids[1], cantidad:0, costo_unitario:100});
+    assert.equal(resultado.status, 400);
+    assert.equal((await sql`SELECT * FROM proveedor_inventario WHERE proveedor_id = ${proveedor.id}`).length, 1);
   } finally {
     if (servidor && servidor.exitCode === null) { const salida = once(servidor, 'exit'); servidor.kill('SIGTERM'); await salida; }
+    if (proveedor) await sql`DELETE FROM compras WHERE proveedor_id = ${proveedor.id}`;
     if (proveedor) await sql`DELETE FROM proveedores WHERE id = ${proveedor.id}`;
     if (inventario.length) await sql`DELETE FROM inventario WHERE id IN ${sql(inventario.map(item => item.id))}`;
     if (usuario) { await sql`DELETE FROM sesiones WHERE usuario_id = ${usuario.id}`; await sql`DELETE FROM usuarios WHERE id = ${usuario.id}`; }

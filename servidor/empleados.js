@@ -1,16 +1,17 @@
 import { sql } from './base.js';
-import { exigir, entero, numero, texto, fecha, correo, correoOpcional, guardarClave } from './utilidades.js';
+import { exigir, entero, numero, numeroOpcional, texto, fecha, correo, correoOpcional, guardarClave } from './utilidades.js';
 
 export async function guardarEmpleado(datos, id = null, conexion = sql) {
-  exigir(texto(datos.nombre) && texto(datos.puesto), 'Ingresá el nombre y el puesto');
   return conexion.begin(async consulta => {
-    const registro = { nombre: texto(datos.nombre), puesto: texto(datos.puesto), correo: correoOpcional(datos.correo), telefono: texto(datos.telefono), salario: numero(datos.salario), usuario_id: datos.usuario_id ? entero(datos.usuario_id) : null, activo: datos.activo === true };
+    let anterior;
     if (id) {
-      const [anterior] = await consulta`SELECT usuario_id FROM empleados WHERE id = ${id} FOR UPDATE`;
+      [anterior] = await consulta`SELECT * FROM empleados WHERE id = ${id} FOR UPDATE`;
       exigir(anterior, 'Empleado no encontrado', 404);
-      // conservar el usuario vinculado para no mover el historial de ventas a otra persona
-      exigir(!anterior.usuario_id || anterior.usuario_id === registro.usuario_id, 'El usuario vinculado no se puede reemplazar; conserva el historial de ventas');
+      datos = { ...anterior, ...datos };
     }
+    exigir(texto(datos.nombre), 'Ingresá el nombre del empleado');
+    const registro = { nombre: texto(datos.nombre), puesto: texto(datos.puesto), correo: correoOpcional(datos.correo), telefono: texto(datos.telefono), salario: numeroOpcional(datos.salario), usuario_id: datos.usuario_id ? entero(datos.usuario_id) : null, activo: datos.activo !== false };
+    exigir(!anterior?.usuario_id || anterior.usuario_id === registro.usuario_id, 'El usuario vinculado no se puede reemplazar; conserva el historial de ventas');
     const [empleado] = id ? await consulta`UPDATE empleados SET ${consulta(registro)} WHERE id = ${id} RETURNING *` : await consulta`INSERT INTO empleados ${consulta(registro)} RETURNING *`;
     if (!empleado.activo && empleado.usuario_id) {
       await consulta`UPDATE usuarios SET activo = false WHERE id = ${empleado.usuario_id}`;

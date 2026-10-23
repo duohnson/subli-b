@@ -1053,3 +1053,15 @@
 .lista-materiales .casilla { min-height: 44px; padding: 10px 4px; border-bottom: 1px solid var(--borde); cursor: pointer; }
 .lista-materiales .casilla span { overflow-wrap: anywhere; }
 .selector-materiales small, .selector-materiales [role=status] { color: var(--suave); font-size: 13px; }
+
+.administracion #formulario-editor > .editor-partidas { grid-column: 1 / -1; min-width: 0; }
+.administracion .editor-partidas { border: 1px solid #dce2e8; border-radius: 8px; padding: 16px; }
+.administracion .editor-partidas [data-filas] { display: grid; gap: 12px; margin-bottom: 12px; }
+.administracion .editor-partidas [data-filas] > fieldset { display: grid; gap: 10px; min-width: 0; border: 1px solid #dce2e8; border-radius: 6px; padding: 12px; }
+
+.administracion #formulario-editor > .datos-opcionales { grid-column: 1 / -1; min-width: 0; }
+.administracion .datos-opcionales { border: 1px solid #ffffff24; border-radius: 8px; padding: 12px; }
+.administracion .datos-opcionales summary { cursor: pointer; font-weight: 600; }
+.administracion .campos-opcionales { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 16px; }
+.administracion .busqueda-selector { display: grid; gap: 4px; font-size: .85rem; margin-bottom: 6px; }
+@media (max-width: 600px) { .administracion .campos-opcionales { grid-template-columns: 1fr; } }
