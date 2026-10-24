@@ -1,5 +1,5 @@
 import { activarBusquedas, activarMovimiento, agruparOpcionales, normalizar } from './formularios-admin.js?v=20261023-2';
-import { montarPartidas, activarDocumento } from './partidas-editor.js?v=20261023-2';
+import { montarPartidas, activarDocumento } from './partidas-editor.js?v=20261023-5';
 import { selectorMateriales, activarSelectorMateriales } from './selector-materiales.js?v=20261022-lotes-1';
 import { mostrarEstadisticas } from './estadisticas.js?v=20261017-panel-2';
 import { pedir, escapar as e, dinero, fechaCorta, datosFormulario } from './comun.js?v=20261017-panel-2';

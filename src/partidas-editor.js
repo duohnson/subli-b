@@ -1,16 +1,25 @@
 import { activarBusquedas } from './formularios-admin.js?v=20261023-2';
 import { escapar as e, dinero } from './comun.js?v=20261017-panel-2';
 
-export function montarPartidas(formulario, variantes = null, { compra = false } = {}) {
+export function montarPartidas(formulario, variantes = null, opciones = {}) {
+  const { compra = false } = opciones;
   const grupo = document.createElement('fieldset');
+  const titulo = opciones.titulo || 'Productos no registrables';
+  const agregarTexto = opciones.agregarTexto || 'Agregar producto no registrable';
+  const quitarTexto = opciones.quitarTexto || 'Quitar producto no registrable';
   grupo.className = 'editor-partidas';
-  grupo.innerHTML = '<legend>Partidas</legend><div data-filas></div><button type="button" class="secundario" data-agregar>Agregar partida</button><p data-total role="status"></p>';
+  grupo.innerHTML = `<legend>${titulo}</legend><div data-filas></div><button type="button" class="secundario" data-agregar>${agregarTexto}</button><p data-total role="status"></p>`;
+  if (opciones.ayuda) {
+    const ayuda = document.createElement('p');
+    ayuda.textContent = opciones.ayuda;
+    grupo.querySelector('[data-filas]').before(ayuda);
+  }
   formulario.querySelector('[type=submit]').before(grupo);
   const lista = grupo.querySelector('[data-filas]');
   function agregar() {
     if (lista.children.length >= 30) return;
     const fila = document.createElement('fieldset');
-    fila.innerHTML = `${variantes ? `<label>${compra ? 'Material o producto' : 'Producto y variante'}<select data-campo="${compra ? 'inventario_id' : 'variante_id'}" required><option value="">Seleccionar</option>${variantes.map(v => `<option value="${v.id}">${e([v.nombre, v.color, v.talla].filter(Boolean).join(' · '))}</option>`).join('')}</select></label>${compra ? '' : '<label>Personalización (opcional)<input data-campo="nombre_personalizado"></label>'}` : '<label>Descripción<input data-campo="nombre" required maxlength="500"></label>'}<label>Cantidad<input data-campo="cantidad" type="number" value="1" min="1" max="10000" step="1" required></label>${variantes && !compra ? '' : `<label>${compra ? 'Costo' : 'Precio'} unitario (CRC)<input data-campo="${compra ? 'costo_unitario' : 'precio'}" type="number" min="0" max="999999999" step="0.01" required></label>`}<button type="button" class="secundario" data-quitar>Quitar partida</button>`;
+    fila.innerHTML = `${variantes ? `<label>${compra ? 'Material o producto' : 'Producto y variante'}<select data-campo="${compra ? 'inventario_id' : 'variante_id'}" required><option value="">${compra ? 'Elegí un material' : 'Elegí un producto'}</option>${variantes.map(v => `<option value="${v.id}">${e([v.nombre, v.color, v.talla].filter(Boolean).join(' · '))}</option>`).join('')}</select></label>${compra ? '' : '<label>Personalización (opcional)<input data-campo="nombre_personalizado"></label>'}` : '<label>Descripción<input data-campo="nombre" required maxlength="500"></label>'}<label>Cantidad<input data-campo="cantidad" type="number" value="1" min="1" max="10000" step="1" required></label>${variantes && !compra ? '' : `<label>${compra ? 'Costo' : 'Precio'} unitario (CRC)<input data-campo="${compra ? 'costo_unitario' : 'precio'}" type="number" min="0" max="999999999" step="0.01" required></label>`}<button type="button" class="secundario" data-quitar>${quitarTexto}</button>`;
     lista.append(fila);
     activarBusquedas(fila);
     if (compra) fila.querySelector('select').addEventListener('change', evento => {
@@ -26,7 +35,7 @@ export function montarPartidas(formulario, variantes = null, { compra = false } 
   function actualizar() {
     grupo.querySelector('[data-agregar]').disabled = lista.children.length >= 30;
     lista.querySelectorAll('[data-quitar]').forEach(b => { b.disabled = lista.children.length === 1; });
-    grupo.querySelector('[data-total]').textContent = variantes && !compra ? `${lista.children.length} partidas` : `Total: ${dinero(leer().reduce((s, p) => s + Number(p.cantidad) * Number(compra ? p.costo_unitario : p.precio), 0))}`;
+    grupo.querySelector('[data-total]').textContent = variantes && !compra ? `${lista.children.length} ${compra ? 'materiales' : variantes ? 'productos' : 'productos o servicios'}` : `Total: ${dinero(leer().reduce((s, p) => s + Number(p.cantidad) * Number(compra ? p.costo_unitario : p.precio), 0))}`;
   }
   grupo.querySelector('[data-agregar]').addEventListener('click', agregar);
   grupo.addEventListener('click', evento => {
@@ -38,7 +47,12 @@ export function montarPartidas(formulario, variantes = null, { compra = false } 
 }
 
 export function activarDocumento(formulario) {
-  const { grupo, leer } = montarPartidas(formulario);
+  const { grupo, leer } = montarPartidas(formulario, null, {
+    titulo: 'Productos no registrables',
+    agregarTexto: 'Agregar producto no registrable',
+    quitarTexto: 'Quitar producto',
+    ayuda: 'Solo aparecen en este documento. No se agregan al catálogo, a pedidos ni a las estadísticas.'
+  });
   const tipo = formulario.elements.tipo;
   const pedido = formulario.elements.pedido_id;
   const ayuda = document.createElement('p');
