@@ -38,7 +38,7 @@ export async function obtenerEstadisticas(valor, consulta = sql) {
     WHERE creado >= ${desde}::date AND creado < ${fin}::date AND estado NOT IN ('cotizacion','cancelado')`;
   // mostrar el inventario de hoy aparte, porque no hay un historial de existencias por año
   const [inventario] = await consulta`SELECT count(*)::integer AS variantes,
-    count(*) FILTER (WHERE existencias - reservado <= minimo)::integer AS bajo FROM inventario`;
+    count(*) FILTER (WHERE existencias > 0 AND existencias - reservado <= minimo)::integer AS bajo FROM inventario`;
   // separar cobros y gastos de ventas aprobadas para no confundir el efectivo con lo facturado
   const [efectivo] = await consulta`SELECT
     COALESCE(sum(monto) FILTER (WHERE tipo = 'ingreso'), 0) AS cobros,

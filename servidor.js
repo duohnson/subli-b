@@ -374,7 +374,7 @@ aplicacion.get('/api/privado/tablero', async (peticion, respuesta) => {
   const pedidos = await listarPedidos();
   const estados = await sql`SELECT estado, count(*)::integer AS cantidad FROM pedidos GROUP BY estado`;
   const recordatorios = await sql`SELECT * FROM recordatorios WHERE NOT completado ORDER BY fecha LIMIT 30`;
-  const inventario = await sql`SELECT * FROM inventario WHERE existencias - reservado <= minimo ORDER BY nombre`;
+  const inventario = await sql`SELECT * FROM inventario WHERE existencias > 0 AND existencias - reservado <= minimo ORDER BY nombre`;
   const meses = await sql`SELECT to_char(fecha, 'YYYY-MM') AS mes, sum(CASE WHEN tipo = 'ingreso' THEN monto - comision ELSE -monto - comision END) AS resultado FROM movimientos WHERE fecha BETWEEN ${desde} AND ${hasta} GROUP BY mes ORDER BY mes`;
   const categorias = await sql`SELECT pr.categoria, sum(pa.cantidad * pa.precio) AS ventas, sum(pa.cantidad * (pa.precio - pa.costo_unitario)) AS ganancia, sum(pa.cantidad) AS unidades FROM partidas pa JOIN pedidos p ON p.id = pa.pedido_id JOIN inventario i ON i.id = pa.variante_id JOIN productos pr ON pr.id = i.producto_id WHERE p.estado NOT IN ('cotizacion','cancelado') AND p.creado::date BETWEEN ${desde} AND ${hasta} GROUP BY pr.categoria ORDER BY ventas DESC`;
   const productos = await sql`SELECT pr.nombre, sum(pa.cantidad) AS unidades FROM partidas pa JOIN pedidos p ON p.id = pa.pedido_id JOIN inventario i ON i.id = pa.variante_id JOIN productos pr ON pr.id = i.producto_id WHERE p.estado NOT IN ('cotizacion','cancelado') AND p.creado::date BETWEEN ${desde} AND ${hasta} GROUP BY pr.id ORDER BY unidades DESC LIMIT 10`;
@@ -421,7 +421,7 @@ aplicacion.use((error, peticion, respuesta, siguiente) => {
 });
 try {
   await verificarBase();
-  const servidor = aplicacion.listen(Number(process.env.PUERTO || 3000), () => console.log(`Subli’B disponible en ${origen}`));
+  const servidor = aplicacion.listen(Number(process.env.PUERTO || 3000), process.env.HOST || '0.0.0.0', () => console.log(`Subli’B disponible en ${origen}`));
   const intervalo = setInterval(() => procesarNotificaciones().catch(() => console.error('No se pudieron procesar las notificaciones')), 60000);
   intervalo.unref();
   process.on('SIGTERM', () => { clearInterval(intervalo); servidor.close(); sql.end().then(() => process.exit(0)); });

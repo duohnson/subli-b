@@ -15,7 +15,7 @@ export async function procesarNotificaciones() {
     }
     if (process.env.CORREO_ADMIN) {
       const alertas = await sql`SELECT 'entrega-' || id AS clave, 'Pedido #' || id || ' por entregar: ' || fecha_prometida AS mensaje FROM pedidos WHERE fecha_prometida <= CURRENT_DATE + 1 AND estado IN ('pendiente','produccion','listo')
-      UNION ALL SELECT 'inventario-' || id, 'Inventario bajo: ' || nombre || ' ' || color || ' ' || talla FROM inventario WHERE existencias - reservado <= minimo
+      UNION ALL SELECT 'inventario-' || id, 'Inventario bajo: ' || nombre || ' ' || color || ' ' || talla FROM inventario WHERE existencias > 0 AND existencias - reservado <= minimo
       UNION ALL SELECT 'recordatorio-' || id, titulo FROM recordatorios WHERE fecha <= CURRENT_DATE + 1 AND NOT completado
       UNION ALL SELECT 'compra-' || c.id, 'Compra #' || c.id || ' con pago vencido' FROM compras c LEFT JOIN movimientos m ON m.compra_id = c.id WHERE c.vencimiento < CURRENT_DATE GROUP BY c.id HAVING c.cantidad * c.costo_unitario > COALESCE(sum(m.monto), 0)`;
       for (const alerta of alertas) await sql`INSERT INTO notificaciones (clave, destinatario, asunto, mensaje) VALUES (${alerta.clave + '-'} || CURRENT_DATE::text, ${process.env.CORREO_ADMIN}, 'Recordatorio · Subli’B', ${alerta.mensaje}) ON CONFLICT DO NOTHING`;

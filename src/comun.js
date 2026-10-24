@@ -1,6 +1,13 @@
 export const dinero = valor => new Intl.NumberFormat('es-CR', { style: 'currency', currency: 'CRC' }).format(Number(valor || 0));
 export const escapar = valor => String(valor ?? '').replace(/[&<>"']/g, caracter => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[caracter]));
-export const fechaCorta = valor => valor ? String(valor).slice(0, 10) : 'Sin fecha';
+export const fechaCorta = valor => {
+  if (!valor) return 'Sin fecha';
+  const texto = String(valor);
+  if (/T\d{2}:\d{2}:\d{2}/.test(texto) && !/T00:00:00(?:\.000)?Z$/.test(texto)) {
+    return new Date(texto).toLocaleDateString('en-CA', { timeZone: 'America/Costa_Rica' });
+  }
+  return texto.slice(0, 10);
+};
 export async function pedir(ruta, datos, metodo = 'POST') {
   // dejar q el navegador ponga el separador de archivos cuando se usa FormData
   const opciones = datos instanceof FormData ? { method: metodo, body: datos } : datos === undefined ? {} : { method: metodo, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(datos) };
