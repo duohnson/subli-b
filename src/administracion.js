@@ -453,7 +453,7 @@ vista.addEventListener('click', async evento => {
     if (accion === 'deudas') {
       const deudas = await pedir(`/api/privado/clientes/${id}/deudas`);
       const filaDeuda = (deuda = {}) => `<li class="fila-deuda"><label>¿Qué debe?<input name="descripcion" maxlength="300" value="${e(deuda.descripcion || '')}"></label><label>Monto en colones<input name="monto" type="number" min="0" max="999999999" step="0.01" value="${deuda.monto ?? ''}"></label><button class="secundario" type="button" data-quitar-deuda>Quitar</button></li>`;
-      vista.innerHTML = `<h2>Deudas de ${e(fila.nombre)}</h2><p>Agregá todos los registros que necesités. La descripción y el monto son opcionales.</p>${boton('volver',0,'Volver a clientes')}<form id="editor-deudas" class="formulario"><ol id="lista-deudas">${deudas.map(filaDeuda).join('')}</ol><section class="acciones"><button id="agregar-deuda" class="secundario" type="button">Agregar deuda</button><button class="boton">Guardar deudas</button></section><p id="mensaje-deudas" role="status"></p></form>`;
+      vista.innerHTML = `<h2>Deudas de ${e(fila.nombre)}</h2><p>Agregá todos los registros que necesités. La descripción y el monto son opcionales.</p>${boton('volver',0,'Volver a clientes')}<form id="editor-deudas" class="formulario"><ol id="lista-deudas">${deudas.map(filaDeuda).join('')}</ol><section class="acciones"><button id="agregar-deuda" class="secundario" type="button">Agregar deuda</button><button class="boton" type="submit">Guardar deudas</button></section><p id="mensaje-deudas" role="status"></p></form>`;
       const lista = vista.querySelector('#lista-deudas');
       vista.querySelector('#agregar-deuda').addEventListener('click', () => lista.insertAdjacentHTML('beforeend', filaDeuda()));
       lista.addEventListener('click', evento => { if (evento.target.closest('[data-quitar-deuda]')) evento.target.closest('li').remove(); });
@@ -462,7 +462,11 @@ vista.addEventListener('click', async evento => {
         const registros = [...lista.querySelectorAll('li')].map(item => ({ descripcion: item.querySelector('[name="descripcion"]').value.trim(), monto: item.querySelector('[name="monto"]').value })).filter(deuda => deuda.descripcion || deuda.monto !== '');
         const guardar = evento.target.querySelector('[type="submit"]');
         guardar.disabled = true;
-        try { await pedir(`/api/privado/clientes/${id}/deudas`, { deudas: registros }, 'PUT'); document.querySelector('#mensaje-deudas').textContent = 'Deudas guardadas.'; }
+        try {
+          const guardadas = await pedir(`/api/privado/clientes/${id}/deudas`, { deudas: registros }, 'PATCH');
+          lista.innerHTML = guardadas.deudas.map(filaDeuda).join('');
+          document.querySelector('#mensaje-deudas').textContent = 'Deudas guardadas en la base de datos.';
+        }
         catch (error) { document.querySelector('#mensaje-deudas').textContent = error.message; }
         finally { guardar.disabled = false; }
       });

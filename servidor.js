@@ -160,18 +160,18 @@ aplicacion.get('/api/privado/clientes/:id/deudas', (peticion, respuesta, siguien
   exigir(cliente, 'Cliente no encontrado', 404);
   respuesta.json(cliente.deudas || []);
 });
-aplicacion.put('/api/privado/clientes/:id/deudas', (peticion, respuesta, siguiente) => administrador(peticion, respuesta, siguiente), async (peticion, respuesta) => {
+aplicacion.patch('/api/privado/clientes/:id/deudas', (peticion, respuesta, siguiente) => administrador(peticion, respuesta, siguiente), async (peticion, respuesta) => {
   const deudas = peticion.body.deudas;
-  exigir(Array.isArray(deudas) && deudas.length <= 200, 'Agregá hasta 200 registros de deuda por cliente');
+  exigir(Array.isArray(deudas), 'Revisá los registros de deuda');
   const registros = deudas.map(deuda => {
     exigir(deuda && typeof deuda === 'object' && !Array.isArray(deuda), 'Revisá los registros de deuda');
     const descripcion = texto(deuda.descripcion, 300);
     const monto = deuda.monto === '' || deuda.monto === null || deuda.monto === undefined ? null : numero(deuda.monto);
     return { descripcion, monto };
   });
-  const [cliente] = await sql`UPDATE clientes SET deudas = ${sql.json(registros)} WHERE id = ${entero(peticion.params.id)} RETURNING id`;
+  const [cliente] = await sql`UPDATE clientes SET deudas = ${sql.json(registros)} WHERE id = ${entero(peticion.params.id)} RETURNING deudas`;
   exigir(cliente, 'Cliente no encontrado', 404);
-  respuesta.json({ deudas: registros });
+  respuesta.json({ deudas: cliente.deudas });
 });
 aplicacion.get('/api/privado/pedidos/:id/detalle', async (peticion, respuesta) => {
   const partidas = await sql`SELECT pa.*, i.nombre, i.color, i.talla FROM partidas pa JOIN inventario i ON i.id = pa.variante_id WHERE pa.pedido_id = ${entero(peticion.params.id)}`;
