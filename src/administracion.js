@@ -59,6 +59,7 @@ function tabla(columnas, registros, acciones = () => '') {
 }
 const boton = (accion, id, nombre) => `<button class="secundario" data-accion="${accion}" data-id="${id}">${nombre}</button>`;
 const moneda = valor => dinero(valor);
+const totalDeudas = deudas => (Array.isArray(deudas) ? deudas : []).reduce((total, deuda) => total + Number(deuda.monto || 0), 0);
 const sino = valor => valor ? 'Sí' : 'No';
 function estado(valor) { return `<span class="estado ${e(valor)}">${estados[valor] || e(valor)}</span>`; }
 function fechaHoy() { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/Costa_Rica' }); }
@@ -270,7 +271,7 @@ async function cargar() {
     let crear = Boolean(campos[seccion]);
     if (seccion === 'pedidos') { columnas = [['id','Pedido'],['cliente','Cliente'],['estado','Estado',estado],['total','Total',moneda],['pagado','Pagado',moneda],['saldo','Saldo',moneda],['fecha_prometida','Entrega',fechaCorta],['responsable','Responsable']]; acciones = fila => boton('detalle', fila.id, 'Abrir') + (usuario.rol === 'administrador' && !['cotizacion','cancelado'].includes(fila.estado) && Number(fila.saldo) > 0 ? boton('cobrar',fila.id,'Cobrar') : ''); crear = true; }
     if (seccion === 'empleados') { columnas = [['nombre','Empleado'],['puesto','Puesto'],['salario','Salario mensual',moneda],['acceso','Usuario'],['activo','Activo',sino],['acceso_activo','Acceso habilitado',sino]]; acciones = fila => boton('editar',fila.id,'Editar') + boton('historial-empleado',fila.id,'Ventas y pagos') + (fila.activo ? boton('pagar-salario',fila.id,'Registrar salario') + (!fila.usuario_id ? boton('usuario-empleado',fila.id,'Crear usuario') : '') : ''); }
-    if (seccion === 'clientes') columnas = [['id','ID'],['nombre','Cliente'],['correo','Correo'],['telefono','Teléfono'],['limite_credito','Crédito',moneda]];
+    if (seccion === 'clientes') columnas = [['id','ID'],['nombre','Cliente'],['correo','Correo'],['telefono','Teléfono'],['deudas','Deuda registrada',deudas => moneda(totalDeudas(deudas))],['limite_credito','Límite de crédito',moneda]];
     if (seccion === 'proveedores') columnas = [['id','ID'],['nombre','Proveedor'],['telefono','Teléfono'],['productos_vinculados','Materiales y productos'],['plazo_dias','Entrega (días)']];
     if (seccion === 'contenidos') { columnas = [['seccion','Ubicación',valor => valor === 'galeria' ? 'Trabajos realizados' : 'Portada'],['nombre','Descripción'],['orden','Orden'],['activo','Visible',sino]]; acciones = fila => boton('editar',fila.id,'Editar') + boton('eliminar-contenido',fila.id,'Eliminar'); }
     if (seccion === 'productos') columnas = [['id','ID'],['nombre','Producto'],['categoria','Categoría'],['precio','Precio',moneda],['activo','Publicado',sino]];
@@ -447,8 +448,9 @@ vista.addEventListener('click', async evento => {
     if (accion === 'programar') return await abrirFormulario('Programar producción', [['fecha_prometida','Fecha prometida','date'],['fecha_pago','Fecha de pago','date'],['responsable_id','Responsable','@responsables'],['instrucciones','Instrucciones','area']], fila, datos => pedir(`/api/privado/pedidos/${id}`,datos,'PATCH'));
     if (accion === 'historial') {
       const pedidos = (await pedir('/api/privado/pedidos')).filter(pedido => pedido.cliente_id === Number(id));
-      const saldo = pedidos.filter(pedido => !['cotizacion','cancelado'].includes(pedido.estado)).reduce((suma,pedido) => suma + Number(pedido.saldo),0);
-      vista.innerHTML = `<h2>${e(fila.nombre)}</h2><p>Saldo pendiente: ${dinero(saldo)} · Límite de crédito: ${dinero(fila.limite_credito)}</p><p>${e(fila.notas)}</p>${boton('volver',0,'Volver')}${tabla([['id','Pedido'],['estado','Estado',estado],['total','Total',moneda],['pagado','Pagado',moneda],['saldo','Saldo',moneda],['fecha_pago','Vencimiento',fechaCorta]],pedidos,pedido => boton('abrir-pedido',pedido.id,'Abrir'))}`; return;
+      const saldoPedidos = pedidos.filter(pedido => !['cotizacion','cancelado'].includes(pedido.estado)).reduce((suma,pedido) => suma + Number(pedido.saldo),0);
+      const saldoDeudas = totalDeudas(fila.deudas);
+      vista.innerHTML = `<h2>${e(fila.nombre)}</h2><p>Saldo de pedidos: ${dinero(saldoPedidos)} · Deudas registradas: ${dinero(saldoDeudas)} · Total adeudado: ${dinero(saldoPedidos + saldoDeudas)} · Límite de crédito: ${dinero(fila.limite_credito)}</p><p>${e(fila.notas)}</p>${boton('volver',0,'Volver')}${tabla([['id','Pedido'],['estado','Estado',estado],['total','Total',moneda],['pagado','Pagado',moneda],['saldo','Saldo',moneda],['fecha_pago','Vencimiento',fechaCorta]],pedidos,pedido => boton('abrir-pedido',pedido.id,'Abrir'))}`; return;
     }
     if (accion === 'deudas') {
       const deudas = await pedir(`/api/privado/clientes/${id}/deudas`);
