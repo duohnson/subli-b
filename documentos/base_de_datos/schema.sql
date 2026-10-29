@@ -19,7 +19,8 @@ CREATE TABLE clientes (
   telefono text NOT NULL DEFAULT '',
   direccion text NOT NULL DEFAULT '',
   notas text NOT NULL DEFAULT '',
-  limite_credito numeric(12,2) NOT NULL DEFAULT 0 CHECK (limite_credito >= 0)
+  limite_credito numeric(12,2) NOT NULL DEFAULT 0 CHECK (limite_credito >= 0),
+  deudas jsonb NOT NULL DEFAULT '[]' CHECK (jsonb_typeof(deudas) = 'array')
 );
 CREATE TABLE proveedores (
   id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,

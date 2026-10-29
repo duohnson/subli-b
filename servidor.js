@@ -105,17 +105,15 @@ aplicacion.get('/api/seguimiento/:codigo', async (peticion, respuesta) => {
   const partidas = await sql`SELECT pa.id, pa.cantidad, pa.precio, pa.nombre_personalizado, pr.nombre, i.color, i.talla FROM partidas pa JOIN inventario i ON i.id = pa.variante_id JOIN productos pr ON pr.id = i.producto_id WHERE pa.pedido_id = ${pedido.id} ORDER BY pa.id`;
   respuesta.json({ ...pedido, archivos, partidas, enlace: `${origen}/#seguimiento=${encodeURIComponent(peticion.params.codigo)}` });
 });
+aplicacion.get('/api/seguimiento-numero/:id', async (peticion, respuesta) => {
+  limitar(peticion, 'seguimiento-numero', 150);
+  const [pedido] = await sql`SELECT p.id, p.estado, p.total, p.fecha_prometida, COALESCE(sum(m.monto), 0) AS pagado FROM pedidos p LEFT JOIN movimientos m ON m.pedido_id = p.id WHERE p.id = ${entero(peticion.params.id)} GROUP BY p.id`;
+  exigir(pedido, 'No se encontró ese pedido', 404);
+  respuesta.json({ ...pedido, instrucciones: '', vista_previa: false, diseno_aprobado: false, archivos: [], partidas: [], modo_publico: true });
+});
 aplicacion.patch('/api/seguimiento/:codigo', async (peticion, respuesta) => {
   limitar(peticion, 'editar-pedido', 30);
   respuesta.json(await editarPedidoCliente(texto(peticion.params.codigo), peticion.body));
-});
-aplicacion.post('/api/seguimiento/:codigo/confirmar', async (peticion, respuesta) => {
-  limitar(peticion, 'confirmar-pedido', 30);
-  const codigo = texto(peticion.params.codigo);
-  const [pedido] = await sql`SELECT id FROM pedidos WHERE codigo = ${codigo}`;
-  exigir(pedido, 'Pedido no encontrado', 404);
-  await cambiarEstado(pedido.id, 'pendiente', codigo);
-  respuesta.json({ mensaje: 'Pedido confirmado' });
 });
 aplicacion.post('/api/seguimiento/:codigo/aprobar', async (peticion, respuesta) => {
   limitar(peticion, 'aprobar-diseno', 30);
@@ -157,6 +155,24 @@ aplicacion.get('/api/seguimiento/:codigo/archivos/:id', async (peticion, respues
 aplicacion.use('/api/privado', autenticar);
 aplicacion.get('/api/privado/sesion', (peticion, respuesta) => respuesta.json(peticion.usuario));
 aplicacion.get('/api/privado/pedidos', async (peticion, respuesta) => respuesta.json(await listarPedidos()));
+aplicacion.get('/api/privado/clientes/:id/deudas', (peticion, respuesta, siguiente) => administrador(peticion, respuesta, siguiente), async (peticion, respuesta) => {
+  const [cliente] = await sql`SELECT deudas FROM clientes WHERE id = ${entero(peticion.params.id)}`;
+  exigir(cliente, 'Cliente no encontrado', 404);
+  respuesta.json(cliente.deudas || []);
+});
+aplicacion.put('/api/privado/clientes/:id/deudas', (peticion, respuesta, siguiente) => administrador(peticion, respuesta, siguiente), async (peticion, respuesta) => {
+  const deudas = peticion.body.deudas;
+  exigir(Array.isArray(deudas) && deudas.length <= 200, 'Agregá hasta 200 registros de deuda por cliente');
+  const registros = deudas.map(deuda => {
+    exigir(deuda && typeof deuda === 'object' && !Array.isArray(deuda), 'Revisá los registros de deuda');
+    const descripcion = texto(deuda.descripcion, 300);
+    const monto = deuda.monto === '' || deuda.monto === null || deuda.monto === undefined ? null : numero(deuda.monto);
+    return { descripcion, monto };
+  });
+  const [cliente] = await sql`UPDATE clientes SET deudas = ${sql.json(registros)} WHERE id = ${entero(peticion.params.id)} RETURNING id`;
+  exigir(cliente, 'Cliente no encontrado', 404);
+  respuesta.json({ deudas: registros });
+});
 aplicacion.get('/api/privado/pedidos/:id/detalle', async (peticion, respuesta) => {
   const partidas = await sql`SELECT pa.*, i.nombre, i.color, i.talla FROM partidas pa JOIN inventario i ON i.id = pa.variante_id WHERE pa.pedido_id = ${entero(peticion.params.id)}`;
   respuesta.json(partidas);

@@ -1064,4 +1064,6 @@
 .administracion .datos-opcionales summary { cursor: pointer; font-weight: 600; }
 .administracion .campos-opcionales { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 16px; }
 .administracion .busqueda-selector { display: grid; gap: 4px; font-size: .85rem; margin-bottom: 6px; }
+.administracion .fila-deuda { display: grid; grid-template-columns: minmax(180px, 2fr) minmax(140px, 1fr) auto; align-items: end; gap: 14px; margin: 0 0 14px; }
 @media (max-width: 600px) { .administracion .campos-opcionales { grid-template-columns: 1fr; } }
+@media (max-width: 600px) { .administracion .fila-deuda { grid-template-columns: 1fr; } }
