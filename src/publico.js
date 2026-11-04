@@ -27,8 +27,8 @@ function mostrarCatalogo() {
   paginaCatalogo = Math.min(paginaCatalogo, paginas || 1);
   const inicio = (paginaCatalogo - 1) * 10;
   mostrarPaginas(document.querySelector('#paginas-catalogo'), paginas, paginaCatalogo);
-  estado.textContent = visibles.length ? `${visibles.length} productos disponibles · Mostrando ${inicio + 1}–${Math.min(inicio + 10, visibles.length)}` : 'No hay productos disponibles con estos filtros. Contáctenos para consultar otras opciones.';
-  productos.innerHTML = visibles.slice(inicio, inicio + 10).map(producto => `<article class="producto">${imagenesProducto(producto).length ? `<button class="foto-producto" type="button" data-galeria="${producto.id}" aria-label="Ver imágenes de ${escapar(producto.nombre)}"><img src="${escapar(imagenesProducto(producto)[0])}" alt="${escapar(producto.nombre)}" loading="lazy"></button>` : '<p class="sin-foto">Subli’B</p>'}<p class="etiqueta">${escapar(producto.categoria)}</p><h3>${escapar(producto.nombre)}</h3><p class="producto-descripcion">${escapar(producto.descripcion)}</p><div class="producto-precio"><strong>${dinero(producto.precio)}</strong>${producto.promocion ? `<p class="promocion">${escapar(producto.promocion)}</p>` : ''}</div><p>${producto.variantes.reduce((total, variante) => total + Number(variante.disponible), 0)} unidades disponibles</p><button class="boton" data-producto="${producto.id}" ${producto.variantes.length ? '' : 'disabled'}>${producto.personalizable ? 'Personalizar y cotizar' : 'Solicitar cotización'}</button></article>`).join('');
+  estado.textContent = visibles.length ? `${visibles.length} productos · Mostrando ${inicio + 1}–${Math.min(inicio + 10, visibles.length)}` : 'No hay productos con estos filtros. Contáctenos para consultar otras opciones.';
+  productos.innerHTML = visibles.slice(inicio, inicio + 10).map(producto => `<article class="producto">${imagenesProducto(producto).length ? `<button class="foto-producto" type="button" data-galeria="${producto.id}" aria-label="Ampliar imágenes de ${escapar(producto.nombre)}"><img src="${escapar(imagenesProducto(producto)[0])}" alt="${escapar(producto.nombre)}" loading="lazy"><span class="indicador-ampliar" aria-hidden="true">Ver producto <span>↗</span></span></button>` : '<p class="sin-foto">Subli’B</p>'}<p class="etiqueta">${escapar(producto.categoria)}</p><h3>${escapar(producto.nombre)}</h3><p class="producto-descripcion">${escapar(producto.descripcion)}</p><div class="producto-precio"><strong>${dinero(producto.precio)}</strong>${producto.promocion ? `<p class="promocion">${escapar(producto.promocion)}</p>` : ''}</div><button class="boton" data-producto="${producto.id}" ${producto.variantes.length ? '' : 'disabled'}>${producto.personalizable ? 'Personalizar y cotizar' : 'Solicitar cotización'}</button></article>`).join('');
 }
 function mostrarPaginas(navegacion, total, actual) {
   navegacion.hidden = total < 2;
@@ -105,7 +105,7 @@ if (filtros) {
     formulario.querySelector('button').disabled = false;
     mensaje.textContent = '';
     document.querySelector('#titulo-personalizar').textContent = elegido.nombre;
-    formulario.elements.variante_id.innerHTML = elegido.variantes.map(variante => `<option value="${variante.id}">${escapar([variante.color, variante.talla].filter(Boolean).join(' · ') || 'Presentación estándar')} · ${variante.disponible} disponibles</option>`).join('');
+    formulario.elements.variante_id.innerHTML = elegido.variantes.map(variante => `<option value="${variante.id}">${escapar([variante.color, variante.talla].filter(Boolean).join(' · ') || 'Presentación estándar')}</option>`).join('');
     formulario.elements.nombre_personalizado.disabled = !elegido.personalizable;
     actualizarTotal();
     dialogo.showModal();

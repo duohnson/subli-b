@@ -61,11 +61,14 @@
 .sitio-publico input, .sitio-publico select, .sitio-publico textarea { min-height: 46px; border: 1px solid #454549; border-radius: 2px; background: var(--superficie); color: var(--texto); }
 .sitio-publico input::placeholder, .sitio-publico textarea::placeholder { color: #96969d; }
 .sitio-publico #estado-catalogo, .sitio-publico #estado-galeria { font-size: 13px; color: var(--suave); }
-.sitio-publico .productos { gap: 44px 28px; }
-.sitio-publico #productos > .producto { display: flex; flex-direction: column; gap: 12px; min-width: 0; padding: 0; background: transparent; border: 0; border-radius: 0; }
+.sitio-publico .productos { gap: 52px 28px; }
+.sitio-publico #productos > .producto { display: flex; flex-direction: column; gap: 12px; min-width: 0; padding: 0 0 20px; background: transparent; border: 0; border-bottom: 1px solid var(--borde); border-radius: 0; }
 .sitio-publico #productos > .producto > * { min-width: 0; margin: 0; overflow-wrap: anywhere; }
-.foto-producto { display: block; width: 100%; padding: 0; border: 0; background: transparent; cursor: pointer; }
-.sitio-publico #productos .foto-producto img, .sitio-publico #productos .sin-foto { display: grid; width: 100%; height: auto; aspect-ratio: 1; object-fit: contain; margin: 0 0 8px; border: 0; border-radius: 0; background: var(--superficie-alta); }
+.foto-producto { position: relative; display: block; width: 100%; overflow: hidden; padding: 0; border: 1px solid var(--borde); background: radial-gradient(ellipse at 50% 30%,#242426,var(--superficie)); cursor: zoom-in; }
+.sitio-publico #productos .foto-producto img, .sitio-publico #productos .sin-foto { display: grid; width: 100%; height: auto; aspect-ratio: 1; object-fit: contain; margin: 0; padding: 12px; border: 0; border-radius: 0; background: transparent; transition: transform .35s ease; }
+.sitio-publico #productos .foto-producto:hover img { transform: scale(1.045); }
+.indicador-ampliar { position: absolute; right: 12px; bottom: 12px; display: flex; align-items: center; gap: 14px; padding: 9px 12px; background: #090909df; color: var(--texto); font-size: 12px; }
+.indicador-ampliar span { color: var(--acento); font-size: 17px; }
 .sitio-publico #productos .sin-foto { font-size: 28px; font-weight: 500; }
 .sitio-publico #productos .etiqueta { border: 0; padding: 0; font-size: 10px; }
 .sitio-publico #productos h3 { font-size: 21px; line-height: 1.3; font-weight: 500; }
@@ -73,9 +76,9 @@
 .sitio-publico #productos .producto-precio { margin-top: auto; padding-top: 4px; }
 .sitio-publico #productos strong { color: var(--texto); font-size: 19px; font-weight: 500; }
 .sitio-publico #productos .producto > p:not(.etiqueta):not(.producto-descripcion) { font-size: 12px; }
-.sitio-publico #productos .producto > .boton { justify-content: space-between; border: 0; border-top: 1px solid var(--borde); padding: 14px 0; border-radius: 0; color: var(--acento); background: transparent; text-align: left; }
+.sitio-publico #productos .producto > .boton { justify-content: space-between; width: 100%; margin-top: 8px; padding: 14px 16px; border: 1px solid var(--acento); color: #090909; background: var(--acento); text-align: left; }
 .sitio-publico #productos .producto > .boton::after { content: '↗'; font-size: 19px; }
-.sitio-publico #productos .producto > .boton:hover { text-decoration: underline; text-underline-offset: 4px; }
+.sitio-publico #productos .producto > .boton:hover { background: #ffe24c; }
 .sitio-publico .tarjeta { padding: 24px 0; border: 0; border-bottom: 1px solid var(--borde); border-radius: 0; background: transparent; }
 .sitio-publico fieldset { min-width: 0; border: 1px solid var(--borde); }
 .sitio-publico .galeria, .sitio-publico #galeria-trabajos { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 24px; }
@@ -91,9 +94,18 @@
 .sitio-publico dialog { border: 1px solid var(--borde); border-radius: 2px; max-height: calc(100dvh - 32px); }
 .sitio-publico dialog h2 { font-size: 28px; }
 .sitio-publico :focus-visible { outline: 2px solid var(--acento); outline-offset: 4px; }
-#galeria-producto { width: min(900px,calc(100% - 24px)); }
-#imagen-producto { display: block; width: 100%; height: min(60vh,600px); object-fit: contain; }
-.controles-galeria { display: flex; align-items: center; justify-content: center; gap: 24px; margin-top: 20px; }
+#galeria-producto { width: min(1040px,calc(100% - 24px)); padding: 24px; background: #101012; box-shadow: 0 24px 100px #000b; }
+#galeria-producto h2 { margin: 10px 0 20px; font-size: 22px; }
+#imagen-producto { display: block; width: 100%; height: min(68vh,720px); object-fit: contain; background: radial-gradient(ellipse at 50% 45%,#202022,#080809 75%); }
+.controles-galeria { display: flex; align-items: center; justify-content: center; gap: 24px; margin-top: 16px; }
+.controles-galeria p { min-width: 60px; color: var(--suave); text-align: center; font-variant-numeric: tabular-nums; }
+#galeria-producto .cerrar { position: absolute; top: 18px; right: 20px; width: 42px; height: 42px; border: 1px solid var(--borde); background: #090909bb; }
+#personalizar { width: min(700px,calc(100% - 24px)); padding: 32px; }
+#personalizar .etiqueta { margin-bottom: 10px; }
+#personalizar .formulario { gap: 20px; }
+#personalizar .formulario label { gap: 9px; }
+#personalizar .formulario input, #personalizar .formulario select, #personalizar .formulario textarea { padding: 12px 14px; }
+#personalizar #total-solicitud { display: block; padding-top: 16px; border-top: 1px solid var(--borde); font-size: 18px; }
 .paginacion { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 32px 0; }
 .paginacion button { min-width: 44px; min-height: 44px; }
 .sitio-publico .paginacion [aria-current="page"] { background: var(--acento); border-color: var(--acento); color: #090909; }
@@ -147,4 +159,11 @@
   .sitio-publico address a { width: 100%; font-size: 22px; }
   .sitio-publico footer { padding: 24px 20px; flex-wrap: wrap; }
   .sitio-publico dialog { padding: 24px 20px; }
+  #galeria-producto { width: calc(100% - 16px); padding: 18px 14px; }
+  #galeria-producto h2 { padding-right: 48px; font-size: 19px; }
+  #imagen-producto { height: min(68dvh,640px); }
+  #galeria-producto .cerrar { top: 12px; right: 12px; }
+  #personalizar { width: calc(100% - 16px); max-height: calc(100dvh - 16px); padding: 24px 18px; }
+  #personalizar h2 { font-size: 25px; }
+  .indicador-ampliar { right: 8px; bottom: 8px; padding: 8px 10px; }
 }
