@@ -1,13 +1,11 @@
 {
   "name": "subli-b",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "type": "module",
   "scripts": {
     "start": "node --env-file-if-exists=.env servidor.js",
     "dev": "node --watch --env-file-if-exists=.env servidor.js",
-    "usuario": "node --env-file-if-exists=.env ./documentos/base_de_datos/crear-usuario.js",
-    "test": "node --test pruebas/*.test.js"
   },
   "dependencies": {
     "express": "^5.1.0",
