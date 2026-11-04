@@ -105,6 +105,8 @@ if (filtros) {
     formulario.querySelector('button').disabled = false;
     mensaje.textContent = '';
     document.querySelector('#titulo-personalizar').textContent = elegido.nombre;
+    document.querySelector('#nombre-resumen-producto').textContent = elegido.nombre;
+    document.querySelector('#precio-resumen-producto').textContent = dinero(elegido.precio);
     formulario.elements.variante_id.innerHTML = elegido.variantes.map(variante => `<option value="${variante.id}">${escapar([variante.color, variante.talla].filter(Boolean).join(' · ') || 'Presentación estándar')}</option>`).join('');
     formulario.elements.nombre_personalizado.disabled = !elegido.personalizable;
     actualizarTotal();

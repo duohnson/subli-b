@@ -100,12 +100,30 @@
 .controles-galeria { display: flex; align-items: center; justify-content: center; gap: 24px; margin-top: 16px; }
 .controles-galeria p { min-width: 60px; color: var(--suave); text-align: center; font-variant-numeric: tabular-nums; }
 #galeria-producto .cerrar { position: absolute; top: 18px; right: 20px; width: 42px; height: 42px; border: 1px solid var(--borde); background: #090909bb; }
-#personalizar { width: min(700px,calc(100% - 24px)); padding: 32px; }
-#personalizar .etiqueta { margin-bottom: 10px; }
-#personalizar .formulario { gap: 20px; }
-#personalizar .formulario label { gap: 9px; }
-#personalizar .formulario input, #personalizar .formulario select, #personalizar .formulario textarea { padding: 12px 14px; }
-#personalizar #total-solicitud { display: block; padding-top: 16px; border-top: 1px solid var(--borde); font-size: 18px; }
+#personalizar { width: min(760px,calc(100% - 24px)); padding: 30px; }
+#personalizar > .etiqueta { margin: 0 0 8px; color: var(--acento); }
+#personalizar > h2 { margin: 0 0 22px; font-size: 26px; }
+#personalizar .formulario { gap: 18px; }
+#personalizar .formulario label { gap: 8px; }
+#personalizar .formulario input, #personalizar .formulario select, #personalizar .formulario textarea { padding: 11px 13px; }
+.resumen-cotizacion { display: flex; align-items: center; gap: 16px; padding: 16px; border: 1px solid var(--borde); background: linear-gradient(120deg,#ffd50010,var(--superficie-alta)); }
+.resumen-icono { display: grid; width: 52px; height: 52px; flex: 0 0 52px; place-items: center; background: #ffd50018; color: var(--acento); font-size: 25px; }
+.resumen-cotizacion div { display: grid; gap: 4px; min-width: 0; }
+.resumen-cotizacion small { color: var(--suave); font-size: 9px; letter-spacing: .13em; }
+.resumen-cotizacion strong { overflow-wrap: anywhere; font-size: 17px; font-weight: 600; }
+.resumen-cotizacion div > span { color: var(--acento); font-size: 13px; }
+.linea-carrito { display: grid; grid-template-columns: minmax(0,1fr) 120px; align-items: end; gap: 14px; }
+.cantidad-carrito { max-width: 120px; }
+.seccion-formulario { padding-top: 16px; border-top: 1px solid var(--borde); }
+.seccion-formulario h3 { margin: 0 0 14px; font-size: 15px; font-weight: 600; }
+.campos-contacto { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; }
+.detalles-diseno { border-top: 1px solid var(--borde); border-bottom: 1px solid var(--borde); }
+.detalles-diseno summary { display: flex; justify-content: space-between; padding: 14px 0; cursor: pointer; font-size: 13px; font-weight: 500; }
+.detalles-diseno summary span, .campos-contacto label > span { color: var(--suave); font-size: 11px; font-weight: 400; }
+.campos-diseno { display: grid; gap: 16px; padding: 4px 0 16px; }
+.nota-cotizacion { margin: 0; color: var(--suave); font-size: 12px; line-height: 1.5; }
+#personalizar #total-solicitud { display: flex; justify-content: space-between; padding-top: 14px; border-top: 1px solid var(--borde); font-size: 18px; }
+#personalizar .formulario > .boton { width: 100%; justify-content: space-between; }
 .paginacion { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 32px 0; }
 .paginacion button { min-width: 44px; min-height: 44px; }
 .sitio-publico .paginacion [aria-current="page"] { background: var(--acento); border-color: var(--acento); color: #090909; }
@@ -163,7 +181,12 @@
   #galeria-producto h2 { padding-right: 48px; font-size: 19px; }
   #imagen-producto { height: min(68dvh,640px); }
   #galeria-producto .cerrar { top: 12px; right: 12px; }
-  #personalizar { width: calc(100% - 16px); max-height: calc(100dvh - 16px); padding: 24px 18px; }
+  #personalizar { width: calc(100% - 16px); max-height: calc(100dvh - 16px); padding: 22px 18px; }
   #personalizar h2 { font-size: 25px; }
   .indicador-ampliar { right: 8px; bottom: 8px; padding: 8px 10px; }
+  .resumen-cotizacion { padding: 12px; }
+  .resumen-icono { width: 44px; height: 44px; flex-basis: 44px; }
+  .linea-carrito { grid-template-columns: minmax(0,1fr) 92px; gap: 10px; }
+  .cantidad-carrito { max-width: none; }
+  .campos-contacto { grid-template-columns: 1fr; gap: 14px; }
 }
