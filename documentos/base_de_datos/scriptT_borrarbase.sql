@@ -13,6 +13,7 @@ UNION ALL SELECT 'recordatorios', count(*) FROM recordatorios
 UNION ALL SELECT 'notificaciones', count(*) FROM notificaciones
 UNION ALL SELECT 'productos conservados', count(*) FROM productos
 UNION ALL SELECT 'variantes conservadas', count(*) FROM inventario WHERE producto_id IS NOT NULL
+UNION ALL SELECT 'imágenes de portada conservadas', count(*) FROM contenidos WHERE seccion = 'portada'
 UNION ALL SELECT 'trabajos conservados', count(*) FROM contenidos WHERE seccion = 'galeria';
 
 TRUNCATE TABLE
@@ -32,7 +33,6 @@ TRUNCATE TABLE
   notificaciones
 RESTART IDENTITY;
 
-DELETE FROM contenidos WHERE seccion = 'portada';
 UPDATE inventario SET reservado = 0;
 
 SELECT 'sesiones' AS tabla, count(*) AS registros FROM sesiones
@@ -48,6 +48,7 @@ UNION ALL SELECT 'recordatorios', count(*) FROM recordatorios
 UNION ALL SELECT 'notificaciones', count(*) FROM notificaciones
 UNION ALL SELECT 'productos conservados', count(*) FROM productos
 UNION ALL SELECT 'variantes conservadas', count(*) FROM inventario WHERE producto_id IS NOT NULL
+UNION ALL SELECT 'imágenes de portada conservadas', count(*) FROM contenidos WHERE seccion = 'portada'
 UNION ALL SELECT 'trabajos conservados', count(*) FROM contenidos WHERE seccion = 'galeria';
 
 COMMIT;
