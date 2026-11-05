@@ -17,7 +17,7 @@
     <section id="panel" hidden>
       <button id="abrir-menu" type="button" aria-expanded="false" aria-controls="menu">Secciones del panel <span aria-hidden="true">☰</span></button>
       <nav id="menu" aria-label="Secciones de administración"></nav>
-      <section class="contenido"><p class="etiqueta" id="saludo"></p><h1 id="titulo-panel">Resumen del negocio</h1><p id="contexto-panel" class="suave"></p><p id="mensaje-panel" role="status" aria-live="polite"></p><section id="vista"></section></section>
+      <section class="contenido"><p class="etiqueta" id="saludo"></p><h1 id="titulo-panel">Resumen del negocio</h1><p id="contexto-panel" class="suave"></p><details class="cambiar-clave"><summary>Cambiar mi contraseña</summary><form id="cambiar-clave" class="formulario"><label>Contraseña anterior<input name="clave_anterior" type="password" autocomplete="current-password" required></label><label>Nueva contraseña (mínimo 12 caracteres)<input name="clave_nueva" type="password" minlength="12" autocomplete="new-password" required></label><label>Confirmar nueva contraseña<input name="confirmacion" type="password" minlength="12" autocomplete="new-password" required></label><button class="boton">Actualizar contraseña</button><p id="mensaje-clave" role="status"></p></form></details><p id="mensaje-panel" role="status" aria-live="polite"></p><section id="vista"></section></section>
     </section>
   </main>
   <dialog id="editor" aria-labelledby="titulo-editor"><button type="button" class="cerrar" aria-label="Cerrar formulario">×</button><h2 id="titulo-editor"></h2><form class="formulario" id="formulario-editor"></form></dialog>

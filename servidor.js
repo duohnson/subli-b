@@ -82,6 +82,14 @@ aplicacion.post('/api/salir', autenticar, async (peticion, respuesta) => {
   await sql`DELETE FROM sesiones WHERE token = ${peticion.token}`;
   respuesta.clearCookie('sesion', opcionesCookie).json({ mensaje: 'Sesión cerrada' });
 });
+aplicacion.post('/api/privado/cambiar-clave', autenticar, async (peticion, respuesta) => {
+  limitar(peticion, `cambiar-clave-${peticion.usuario.id}`, 10);
+  const [usuario] = await sql`SELECT clave FROM usuarios WHERE id = ${peticion.usuario.id} AND activo`;
+  exigir(usuario && comprobarClave(peticion.body.clave_anterior, usuario.clave), 'La contraseña anterior es incorrecta', 400);
+  const nueva = guardarClave(peticion.body.clave_nueva);
+  await sql`UPDATE usuarios SET clave = ${nueva} WHERE id = ${peticion.usuario.id}`;
+  respuesta.json({ mensaje: 'Contraseña actualizada' });
+});
 aplicacion.get('/api/catalogo', async (peticion, respuesta) => {
   const productos = await sql`SELECT p.id, p.nombre, p.categoria, p.descripcion, p.imagen, p.imagenes, p.precio, p.promocion, p.personalizable, COALESCE(jsonb_agg(jsonb_build_object('id', i.id, 'color', i.color, 'talla', i.talla, 'disponible', i.existencias - i.reservado)) FILTER (WHERE i.id IS NOT NULL), '[]') AS variantes FROM productos p LEFT JOIN inventario i ON i.producto_id = p.id WHERE p.activo GROUP BY p.id ORDER BY p.nombre`;
   respuesta.json(productos);

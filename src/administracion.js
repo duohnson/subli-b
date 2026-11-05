@@ -83,6 +83,18 @@ document.querySelector('#ingresar').addEventListener('submit', async evento => {
   catch (error) { document.querySelector('#error-acceso').textContent = error.message; }
 });
 document.querySelector('#salir').addEventListener('click', async () => { try { await pedir('/api/salir', {}); location.reload(); } catch (error) { mensaje.textContent = error.message; } });
+document.querySelector('#cambiar-clave').addEventListener('submit', async evento => {
+  evento.preventDefault();
+  const form = evento.currentTarget;
+  const estado = document.querySelector('#mensaje-clave');
+  const { clave_anterior, clave_nueva, confirmacion } = datosFormulario(form);
+  if (clave_nueva !== confirmacion) { estado.textContent = 'La confirmación no coincide con la nueva contraseña.'; return; }
+  try {
+    const resultado = await pedir('/api/privado/cambiar-clave', { clave_anterior, clave_nueva });
+    estado.textContent = resultado.mensaje;
+    form.reset();
+  } catch (error) { estado.textContent = error.message; }
+});
 const abrirMenu = document.querySelector('#abrir-menu');
 function cerrarMenuPanel() {
   abrirMenu.setAttribute('aria-expanded', 'false');
