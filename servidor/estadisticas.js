@@ -44,11 +44,12 @@ export async function obtenerEstadisticas(valor, consulta = sql) {
     COALESCE(sum(monto) FILTER (WHERE tipo = 'ingreso'), 0) AS cobros,
     COALESCE(sum(monto) FILTER (WHERE tipo = 'gasto'), 0) AS gastos,
     COALESCE(sum(comision), 0) AS comisiones FROM movimientos WHERE fecha >= ${desde}::date AND fecha < ${fin}::date`;
+  const [ventasExternas] = await consulta`SELECT COALESCE(sum(monto),0) AS monto, count(*)::integer AS cantidad FROM movimientos WHERE tipo='ingreso' AND pedido_id IS NULL AND compra_id IS NULL AND fecha >= ${desde}::date AND fecha < ${fin}::date`;
   const anios = await consulta`SELECT DISTINCT anio FROM (
     SELECT extract(year FROM creado)::integer AS anio FROM pedidos
     UNION SELECT extract(year FROM fecha)::integer FROM movimientos
     UNION SELECT extract(year FROM CURRENT_DATE)::integer
   ) fechas WHERE anio BETWEEN 2000 AND 2100 ORDER BY anio DESC`;
   const vendedores = await ventasPorUsuario(desde, `${anio}-12-31`, consulta);
-  return { vendedores, anio, meses, resumen, categorias, productos, clientes: clientes.cantidad, inventario, efectivo, anios: anios.map(fila => fila.anio) };
+  return { vendedores, anio, meses, resumen: { ...resumen, ventasExternas: Number(ventasExternas.monto), ventasTotal: resumen.ventas + Number(ventasExternas.monto) }, categorias, productos, clientes: clientes.cantidad, inventario, efectivo, anios: anios.map(fila => fila.anio) };
 }

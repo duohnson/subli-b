@@ -62,15 +62,15 @@ export async function mostrarEstadisticas(vista, anio = Number(new Date().toLoca
   const margen = resumen.ventas - resumen.costo;
   const anios = [...new Set([...datos.anios, anio, anio - 1])].filter(valor => valor >= 2000).sort((a, b) => b - a);
   const indicadores = [
-    ['Ventas aprobadas', dinero(resumen.ventas), `${resumen.pedidos} pedidos en ${anio}`],
-    ['Ventas del año anterior', dinero(resumen.anterior), `Enero a diciembre de ${anio - 1}`],
-    ['Diferencia de ventas', dinero(diferencia), cambio(resumen.ventas, resumen.anterior)],
-    ['Margen bruto estimado', dinero(margen), 'Ventas menos costo estimado de producción']
+    ['Ingresos', dinero(resumen.ventasTotal), `${resumen.pedidos} pedidos + ventas externas`],
+    ['Total', dinero(resumen.ventasTotal), `Ingresos registrados en ${anio}`],
+    ['Gastos', dinero(datos.efectivo.gastos), `Año ${anio}`],
+    ['Descuentos en pedidos', 'Ver pedidos', 'Aplicados al total por cobrar']
   ];
   const categoriasActuales = datos.categorias.filter(categoria => Number(categoria.unidades) > 0);
   const maxUnidades = Math.max(...categoriasActuales.map(categoria => Number(categoria.unidades)), 1);
   vista.innerHTML = `<section class="estadisticas"><header class="hero-estadisticas"><div><p class="etiqueta">PANEL DE RENDIMIENTO</p><h2>Estadísticas del negocio</h2><p>Ventas, costos y actividad en una sola vista.</p></div><span class="periodo-estadisticas">${anio} <i>vs.</i> ${anio - 1}</span></header><form id="filtro-estadisticas" class="filtros filtro-estadisticas"><label>Año de análisis<select name="anio">${anios.map(valor => `<option value="${valor}" ${valor === anio ? 'selected' : ''}>${valor}</option>`).join('')}</select></label><button class="boton">Consultar</button><p>Comparación anual completa<br><strong>${anio} frente a ${anio - 1}</strong></p><output id="error-estadisticas" role="status"></output></form>
-    <section class="indicadores">${indicadores.map(([nombre, valor, nota]) => `<article><p>${nombre}</p><strong>${valor}</strong><small>${nota}</small></article>`).join('')}</section>
+    <section class="indicadores">${indicadores.map(([nombre, valor, nota]) => `<article><p>${nombre}</p><strong>${valor}</strong><small>${nota}</small></article>`).join('')}</section><section class="indicadores"><article><p>Ventas de pedidos</p><strong>${dinero(resumen.ventas)}</strong></article><article><p>Ventas externas</p><strong>${dinero(resumen.ventasExternas)}</strong></article><article><p>Variación contra año anterior</p><strong>${dinero(diferencia)}</strong><small>${cambio(resumen.ventas, resumen.anterior)}</small></article><article><p>Margen bruto estimado</p><strong>${dinero(margen)}</strong><small>Pedidos menos costo estimado</small></article></section>
     <section class="cifras-estadisticas" aria-label="Indicadores del año"><p><strong>${datos.clientes}</strong>Clientes con pedidos</p><p><strong>${dinero(resumen.pedidos ? resumen.ventas / resumen.pedidos : 0)}</strong>Venta media por pedido</p><p><strong>${categoriasActuales.length}</strong>Categorías vendidas</p><p><strong>${datos.inventario.bajo} / ${datos.inventario.variantes}</strong>Registros con stock bajo · hoy</p></section>
     <section class="graficos-estadisticas"><article class="tarjeta"><h2>Evolución de ventas</h2><p class="leyenda-lineas"><span>${anio}</span><span>${anio - 1}</span><small>Importes en CRC</small></p>${lineas(datos.meses, anio)}${!resumen.ventas && !resumen.anterior ? vacio() : ''}${tablaMeses(datos.meses, anio)}</article><article class="tarjeta"><h2>Los 5 productos más vendidos</h2><p class="nota-grafico">Distribución por unidades dentro del top 5.</p>${dona(datos.productos)}</article>
     <article class="tarjeta"><h2>Variación mensual de ventas</h2><p class="nota-grafico">Frente al mismo mes de ${anio - 1}. — indica que no hay base previa.</p>${barrasMensuales(datos.meses)}</article><article class="tarjeta"><h2>Diferencia por trimestre</h2><p class="nota-grafico">Ventas de ${anio} menos ventas de ${anio - 1}.</p>${trimestres(datos.meses)}</article>

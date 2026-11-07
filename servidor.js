@@ -193,6 +193,15 @@ aplicacion.patch('/api/privado/pedidos/:id', async (peticion, respuesta) => {
   for (const campo of ['fecha_prometida','fecha_pago']) if (campo in peticion.body) datos[campo] = fecha(peticion.body[campo]);
   if ('responsable_id' in peticion.body) datos.responsable_id = peticion.body.responsable_id ? entero(peticion.body.responsable_id) : null;
   if ('instrucciones' in peticion.body) datos.instrucciones = texto(peticion.body.instrucciones, 3000);
+  if ('descuento' in peticion.body) {
+    datos.descuento = Number(peticion.body.descuento);
+    exigir(Number.isFinite(datos.descuento) && datos.descuento >= 0, 'El descuento debe ser un monto válido');
+    const [actual] = await sql`SELECT total + descuento AS subtotal, COALESCE((SELECT sum(monto) FROM movimientos WHERE pedido_id = pedidos.id), 0) AS pagado FROM pedidos WHERE id = ${id}`;
+    exigir(actual, 'Pedido no encontrado', 404);
+    exigir(datos.descuento <= Number(actual.subtotal), 'El descuento no puede superar el subtotal');
+    exigir(Number(actual.subtotal) - datos.descuento >= Number(actual.pagado), 'El total no puede ser menor que los adelantos registrados');
+    datos.total = (Number(actual.subtotal) - datos.descuento).toFixed(2);
+  }
   exigir(Object.keys(datos).length, 'No hay cambios para guardar');
   const [pedido] = await sql`UPDATE pedidos SET ${sql(datos)} WHERE id = ${id} RETURNING *`;
   exigir(pedido, 'Pedido no encontrado', 404);
@@ -224,7 +233,9 @@ aplicacion.get('/api/privado/misventas', async (peticion, respuesta) => {
   const desde = fecha(peticion.query.desde);
   const hasta = fecha(peticion.query.hasta);
   exigir(desde && hasta && desde <= hasta, 'Elegí un rango de fechas válido');
-  respuesta.json(await sql`SELECT p.id, p.creado, p.estado, p.total, c.nombre AS cliente FROM pedidos p JOIN clientes c ON c.id = p.cliente_id WHERE p.vendedor_id = ${peticion.usuario.id} AND p.estado NOT IN ('cotizacion','cancelado') AND p.creado::date BETWEEN ${desde} AND ${hasta} ORDER BY p.creado DESC`);
+  respuesta.json(await sql`SELECT p.id, p.creado, p.estado, p.total, p.descuento, c.nombre AS cliente, false AS externa, NULL::text AS concepto FROM pedidos p JOIN clientes c ON c.id = p.cliente_id WHERE p.vendedor_id = ${peticion.usuario.id} AND p.estado NOT IN ('cotizacion','cancelado') AND p.creado::date BETWEEN ${desde} AND ${hasta}
+    UNION ALL SELECT -m.id AS id, m.fecha::timestamptz AS creado, 'registrada' AS estado, m.monto AS total, 0 AS descuento, 'Venta externa' AS cliente, true AS externa, m.concepto FROM movimientos m WHERE m.tipo = 'ingreso' AND m.pedido_id IS NULL AND m.compra_id IS NULL AND m.fecha BETWEEN ${desde} AND ${hasta}
+    ORDER BY creado DESC`);
 });
 aplicacion.get('/api/privado/variantes', async (peticion, respuesta) => respuesta.json(await sql`SELECT i.id, p.nombre, i.color, i.talla FROM inventario i JOIN productos p ON p.id = i.producto_id WHERE p.activo ORDER BY p.nombre`));
 aplicacion.get('/api/privado/clientes', async (peticion, respuesta, siguiente) => {

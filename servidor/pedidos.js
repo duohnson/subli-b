@@ -28,7 +28,10 @@ export async function crearPedido(datos, privado = false, vendedor = null, conex
       // guardar el costo y precio actuales para conservar la referencia de esta cotizacion
       partidas.push({ variante_id: variante.id, cantidad, precio: variante.precio, costo_unitario: (Number(variante.costo) + Number(materiales.costo)).toFixed(2), nombre_personalizado: texto(partida.nombre_personalizado) });
     }
-    const [pedido] = await consulta`INSERT INTO pedidos (codigo, cliente_id, instrucciones, vista_previa, total, costo, fecha_prometida, vendedor_id) VALUES (${randomBytes(24).toString('hex')}, ${cliente.id}, ${texto(datos.instrucciones, 3000)}, ${datos.vista_previa === true}, ${total.toFixed(2)}, ${costo.toFixed(2)}, ${privado ? fecha(datos.fecha_prometida) : null}, ${privado ? vendedor : null}) RETURNING *`;
+    const descuento = privado && datos.descuento !== undefined ? Number(datos.descuento) : 0;
+    exigir(Number.isFinite(descuento) && descuento >= 0 && descuento <= total, 'El descuento debe estar entre 0 y el subtotal');
+    total -= descuento;
+    const [pedido] = await consulta`INSERT INTO pedidos (codigo, cliente_id, instrucciones, vista_previa, total, descuento, costo, fecha_prometida, vendedor_id) VALUES (${randomBytes(24).toString('hex')}, ${cliente.id}, ${texto(datos.instrucciones, 3000)}, ${datos.vista_previa === true}, ${total.toFixed(2)}, ${descuento.toFixed(2)}, ${costo.toFixed(2)}, ${privado ? fecha(datos.fecha_prometida) : null}, ${privado ? vendedor : null}) RETURNING *`;
     for (const partida of partidas) await consulta`INSERT INTO partidas ${consulta({ ...partida, pedido_id: pedido.id })}`;
     return pedido;
   });
@@ -109,9 +112,12 @@ export async function editarPedidoCliente(codigo, datos, conexion = sql) {
       total += Number(partida.precio) * cantidad;
       costo += Number(partida.costo_unitario) * cantidad;
     }
+    const descuento = datos.descuento === undefined ? Number(pedido.descuento || 0) : Number(datos.descuento);
+    exigir(Number.isFinite(descuento) && descuento >= 0 && descuento <= total, 'El descuento debe estar entre 0 y el subtotal');
+    total -= descuento;
     const [pagos] = await consulta`SELECT COALESCE(sum(monto), 0) AS total FROM movimientos WHERE pedido_id = ${pedido.id}`;
     exigir(total >= Number(pagos.total), 'El total no puede ser menor que los adelantos registrados');
-    await consulta`UPDATE pedidos SET instrucciones = ${texto(datos.instrucciones, 3000)}, total = ${total.toFixed(2)}, costo = ${costo.toFixed(2)}, diseno_aprobado = false WHERE id = ${pedido.id}`;
+    await consulta`UPDATE pedidos SET instrucciones = ${texto(datos.instrucciones, 3000)}, total = ${total.toFixed(2)}, descuento = ${descuento.toFixed(2)}, costo = ${costo.toFixed(2)}, diseno_aprobado = false WHERE id = ${pedido.id}`;
     return { mensaje: pedido.vista_previa ? 'Cambios guardados. La aprobación del diseño debe revisarse nuevamente.' : 'Cambios guardados.' };
   });
 }
