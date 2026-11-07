@@ -416,7 +416,7 @@ vista.addEventListener('click', async evento => {
     }
     if (accion === 'copiar-enlace') { await navigator.clipboard.writeText(fila.enlace); mensaje.textContent = 'Enlace del cliente copiado. Podés enviarlo por WhatsApp o correo.'; return; }
     if (accion === 'ir') { seccion = id; return cargar(); }
-    if (accion === 'registrar-venta-externa') return await abrirFormulario('Registrar venta externa', [['concepto','Qué vendiste (por ejemplo Promos)'],['monto','Monto de la venta','number'],['comision','Comisión (opcional)','number'],['impuesto','Impuesto incluido (opcional)','number'],['medio','Medio de pago',['efectivo','banco','sinpe','tarjeta']],['cuenta','Cuenta o referencia (opcional)'],['fecha','Fecha de la venta','date']], {tipo:'ingreso', fecha:fechaHoy(), medio:'efectivo'}, datos => pedir('/api/privado/movimientos', datos));
+    if (accion === 'registrar-venta-externa') return await abrirFormulario('Registrar venta externa', [['concepto','Qué vendiste (por ejemplo Promos)'],['monto','Monto de la venta','number'],['comision','Comisión (opcional)','number'],['impuesto','Impuesto incluido (opcional)','number'],['medio','Medio de pago',['efectivo','banco','sinpe','tarjeta']],['cuenta','Cuenta o referencia (opcional)'],['fecha','Fecha de la venta','date']], {fecha:fechaHoy(), medio:'efectivo'}, datos => pedir('/api/privado/movimientos', { ...datos, tipo: 'ingreso' }));
     if (accion === 'volver') return cargar();
     if (accion === 'detalle' || accion === 'abrir-pedido') return await abrirPedido(id);
     if (accion === 'nuevo' && seccion === 'pedidos') {
