@@ -1,0 +1,39 @@
+services:
+  web:
+    build: .
+    restart: unless-stopped
+    init: true
+    ports:
+      - "${PUERTO_PUBLICO:-3044}:3000"
+    environment:
+      NODE_ENV: production
+      PUERTO: 3000
+      HOST: 0.0.0.0
+      URL_PUBLICA: ${URL_PUBLICA:-http://localhost:3044}
+      COOKIE_SEGURA: ${COOKIE_SEGURA:-false}
+      DATABASE_URL: ${DATABASE_URL:?Definí DATABASE_URL en .env.docker}
+      CORREO_ADMIN: ${CORREO_ADMIN:-}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+    volumes:
+      - archivos:/app/archivos
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+
+volumes:
+  archivos:

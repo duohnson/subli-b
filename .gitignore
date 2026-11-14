@@ -1,6 +1,8 @@
 node_modules/
 .env
+.env.docker
 .env.example
+!.env.example
 archivos/*
 !archivos/.gitkeep
 .desarrollo/
