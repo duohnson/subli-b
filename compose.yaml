@@ -3,14 +3,11 @@ services:
     build: .
     restart: unless-stopped
     init: true
-    ports:
-      - "${PUERTO_PUBLICO:-3044}:3000"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+    network_mode: host
     environment:
       NODE_ENV: production
-      PUERTO: 3000
-      HOST: 0.0.0.0
+      PUERTO: ${PUERTO_PUBLICO:-3044}
+      HOST: 127.0.0.1
       URL_PUBLICA: ${URL_PUBLICA:-http://localhost:3044}
       COOKIE_SEGURA: ${COOKIE_SEGURA:-false}
       DATABASE_URL: ${DATABASE_URL:?Definí DATABASE_URL en .env.docker}
@@ -31,7 +28,7 @@ services:
     cap_drop:
       - ALL
     healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:' + (process.env.PUERTO || '3044') + '/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
       interval: 30s
       timeout: 5s
       start_period: 15s
